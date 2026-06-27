@@ -1,1 +1,1 @@
-# rajet99.gitub.io
+# rajet99.github.io
