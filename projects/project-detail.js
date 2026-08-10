@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // DYNAMIC SECTION HIDING:
                 const headings = containerElement.querySelectorAll('h1, h2, h3, h4, h5, h6');
-                const blacklistedTitles = ['requirements', 'setup', 'structure', 'usage', 'roadmap'];
+                let blacklistedTitles = ['requirements', 'setup', 'running', 'structure', 'usage'];
                 
                 headings.forEach(heading => {
                     const titleText = heading.textContent.trim().toLowerCase();

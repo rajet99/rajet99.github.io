@@ -110,8 +110,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const slideToPage = (pageId) => {
         const pageIndex = pages.indexOf(pageId);
         if (pageIndex !== -1) {
-            // Slide the page container horizontally
-            sectionsSlider.style.transform = `translateX(-${pageIndex * 100}vw)`;
+            // Slide the page container horizontally (percentage-based relative to 300% width slider)
+            sectionsSlider.style.transform = `translateX(-${(pageIndex * 100) / 3}%)`;
             
             // Update navigation link active styling
             navLinks.forEach(link => {
@@ -244,4 +244,27 @@ document.addEventListener('DOMContentLoaded', () => {
         const initialPage = getPageFromUrl();
         slideToPage(initialPage);
     }
+
+    // Intercept clicks on project card GitHub icons to navigate directly to the repo
+    document.addEventListener('click', (e) => {
+        const githubIcon = e.target.closest('.card-github-icon');
+        if (!githubIcon) return;
+        
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const card = githubIcon.closest('.project-card');
+        if (card) {
+            let repoUrl = '';
+            if (card.id === 'card-tvc-rocket') {
+                repoUrl = 'https://github.com/rajet99/tvc-experimentation';
+            } else if (card.id === 'card-inverted-pendulum') {
+                repoUrl = 'https://github.com/rajet99/inverted-pendulum';
+            }
+            
+            if (repoUrl) {
+                window.open(repoUrl, '_blank', 'noopener,noreferrer');
+            }
+        }
+    });
 });
