@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Redirecting...</title>
+    <script>
+        // Extract the original target path, search queries, and hashes
+        const path = window.location.pathname;
+        const search = window.location.search;
+        const hash = window.location.hash;
+        
+        // Find the root path (helps support both custom domains and github.io/repo subfolder paths)
+        // If hosted on github.io/repository-name/, extract the repo subdirectory path
+        const pathSegments = path.split('/');
+        // TVC and inverted-pendulum pages exist as actual folders, so let them fall through (they are not 404 routes)
+        if (!path.includes('/projects/TVC') && !path.includes('/projects/inverted-pendulum')) {
+            const repoPath = pathSegments.slice(0, 2).join('/');
+            
+            // Re-route to the main index.html landing page, passing the clean target path as a redirect parameter
+            const redirectUrl = window.location.origin + repoPath + '/index.html?redirect=' + encodeURIComponent(path) + (search ? '&' + search.substring(1) : '') + hash;
+            window.location.replace(redirectUrl);
+        }
+    </script>
+</head>
+<body>
+    <p>Redirecting to Rajat Bidarkota's portfolio...</p>
+</body>
+</html>

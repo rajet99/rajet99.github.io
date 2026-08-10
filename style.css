@@ -1,0 +1,1222 @@
+/* Register custom CSS properties for dynamic gradient transition */
+@property --grad-color-1 {
+    syntax: '<color>';
+    inherits: false;
+    initial-value: #ffffff;
+}
+
+@property --grad-color-2 {
+    syntax: '<color>';
+    inherits: false;
+    initial-value: #ffffff;
+}
+
+/* Base Theme Setup & CSS Variables */
+:root {
+    --font-primary: 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif;
+    
+    /* Light Theme (Clean Slate - High Contrast Edition) */
+    --bg-primary: #f4f6f9;
+    --bg-secondary: #ffffff;
+    --text-primary: #05070a; /* Darkened for higher contrast */
+    --text-secondary: #2d3748; /* Darkened for higher contrast */
+    --border-color: #cbd5e1;
+    --accent-glow: rgba(77, 153, 232, 0.2);
+    
+    /* Shared Brand Colors & Gradients */
+    --gradient-start: #4d99e8;
+    --gradient-end: #59ff90;
+    --button-primary: #05070a;
+    --button-primary-hover: #1e293b;
+    --button-text: #ffffff;
+    
+    --transition-speed: 0.35s;
+    --max-width: 1000px; /* Smaller content limit as requested */
+    --bg-navbar: rgba(244, 246, 249, 0.9);
+}
+
+/* Dark Theme Overrides (High Contrast Edition) */
+[data-theme="dark"] {
+    --bg-primary: #080c14;
+    --bg-secondary: #111827;
+    --text-primary: #ffffff; /* Brightened for higher contrast */
+    --text-secondary: #cbd5e1; /* Brightened for higher contrast */
+    --border-color: #1e293b;
+    --accent-glow: rgba(89, 255, 144, 0.2);
+    --button-primary: #ffffff;
+    --button-primary-hover: #f1f5f9;
+    --button-text: #080c14;
+    --bg-navbar: rgba(8, 12, 20, 0.9);
+}
+
+/* Reset & Global Styles */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    width: 100%;
+    overflow-x: hidden;
+    font-family: var(--font-primary);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+
+/* Navigation Bar */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    background-color: var(--bg-navbar);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border-color);
+    transition: padding var(--transition-speed) ease-in-out, background-color var(--transition-speed), border-color var(--transition-speed);
+}
+
+/* Large header at top, smaller on scroll, or when hovered */
+.navbar.header-large,
+.navbar:hover {
+    padding-top: 2rem;   /* Increased vertical padding relative to the logo */
+    padding-bottom: 2rem;
+}
+
+.navbar:not(.header-large):not(:hover) {
+    padding-top: 1rem;   /* Increased vertical padding relative to the logo */
+    padding-bottom: 1rem;
+}
+
+.nav-container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    padding-left: 2rem;
+    padding-right: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all var(--transition-speed) ease-in-out;
+}
+
+.logo-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--text-primary);
+    gap: 1.25rem;
+}
+
+/* Sizing logo at top vs scrolled state (High-Performance GPU-accelerated scaling) */
+.logo-img {
+    border-radius: 4px;
+    display: block;
+    height: 105px;
+    width: 105px;
+    transform-origin: center center;
+    transition: transform var(--transition-speed) ease-in-out, filter var(--transition-speed) ease;
+}
+
+.header-large .logo-img,
+.navbar:hover .logo-img {
+    transform: scale(1);
+}
+
+.navbar:not(.header-large):not(:hover) .logo-img {
+    transform: scale(0.667); /* Scales down to exactly 70px */
+}
+
+/* Transparent-specific boundary glow (drop-shadow instead of box-shadow) */
+.logo-img:hover {
+    transform: scale(1.08);
+    /* CUSTOMIZATION NOTE: Adjust colors and blur strength below to customize the logo hover glow */
+    filter: drop-shadow(0 0 7px rgba(77, 153, 232, 0.4)) drop-shadow(0 0 7px rgba(89, 255, 144, 0.4));
+    transition: transform var(--transition-speed) ease, filter var(--transition-speed) ease;
+}
+
+/* Position logo in the left margin gutter on wide viewports (Disconnected from name spacing) */
+@media (min-width: 1300px) {
+    .logo-link {
+        position: relative;
+        padding-left: 0;
+    }
+    
+    .logo-img {
+        position: absolute;
+        left: -155px; /* Shifted more to the left */
+        top: 50%;
+        transform: translateY(-50%) scale(1);
+    }
+
+    /* Fixed vertical center translation + scale on hover, prevents shifting */
+    .logo-img:hover {
+        transform: translateY(-50%) scale(1.08) !important;
+    }
+    
+    /* Ensure the vertical centering properties and scales apply smoothly across states */
+    .header-large .logo-img,
+    .navbar:hover .logo-img {
+        position: absolute;
+        left: -155px;
+        top: 50%;
+        transform: translateY(-50%) scale(1) !important;
+    }
+    
+    .navbar:not(.header-large):not(:hover) .logo-img {
+        position: absolute;
+        left: -155px;
+        top: 50%;
+        transform: translateY(-50%) scale(0.667) !important;
+    }
+}
+
+/* Site Title styling */
+.site-title {
+    font-weight: bold;
+    letter-spacing: -0.5px;
+    color: var(--text-primary);
+    transition: font-size var(--transition-speed) ease;
+}
+
+.header-large .site-title,
+.navbar:hover .site-title {
+    font-size: 2.5rem;
+}
+
+.navbar:not(.header-large):not(:hover) .site-title {
+    font-size: 1.85rem;
+}
+
+.nav-menu {
+    display: flex;
+    gap: 2rem;
+}
+
+.nav-link {
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: var(--text-secondary);
+    text-decoration: none;
+    text-transform: uppercase;
+    position: relative;
+    padding: 0.5rem 0;
+    transition: color var(--transition-speed);
+    letter-spacing: 0.5px;
+}
+
+.nav-link:hover,
+.nav-link.active {
+    color: var(--text-primary);
+}
+
+/* Header link underline starting from the center without rounded corners */
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+    transform: scaleX(0);
+    transform-origin: center;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+    transform: scaleX(1);
+}
+
+/* Theme Toggle Button */
+.theme-btn {
+    background: none;
+    border: 1px solid var(--border-color);
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color var(--transition-speed), border-color var(--transition-speed);
+}
+
+.theme-btn:hover {
+    background-color: var(--bg-secondary);
+    border-color: var(--text-primary);
+}
+
+.theme-icon {
+    position: relative;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: var(--text-primary);
+    transition: transform var(--transition-speed), background-color var(--transition-speed);
+}
+
+[data-theme="dark"] .theme-icon {
+    background-color: transparent;
+    box-shadow: inset -5px -5px 0px 0px #ffffff;
+}
+
+/* Page Slider Architecture */
+.page-slider-viewport {
+    width: 100vw;
+    overflow: hidden;
+    position: relative;
+    min-height: calc(100vh - 190px);
+    margin-top: 190px; /* Increased offset to accommodate enlarged topbar padding */
+}
+
+.sections-slider {
+    display: flex;
+    width: 300vw; /* 3 pages */
+    transition: transform 0.4s cubic-bezier(0.76, 0, 0.24, 1); /* Faster panel slider transition */
+    will-change: transform;
+}
+
+.slider-page {
+    width: 100vw;
+    flex-shrink: 0;
+    min-height: calc(100vh - 100px);
+    padding: 4rem 2rem;
+    overflow-y: auto;
+}
+
+/* Hero Page styles */
+.hero-section {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.hero-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.hero-subtitle {
+    font-size: 1.45rem;
+    color: var(--text-secondary);
+    margin-bottom: 3rem;
+    line-height: 1.6;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+}
+
+/* Buttons and Hover Gradient effects */
+.btn {
+    position: relative;
+    padding: 0.85rem 2rem;
+    font-size: 1.05rem;
+    font-weight: bold;
+    text-decoration: none;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform var(--transition-speed) ease, color var(--transition-speed) ease, background var(--transition-speed) ease, border-color var(--transition-speed) ease;
+    z-index: 1;
+}
+
+/* Primary Button (Explore Projects) - Sliding Gradient Mask (Left -> Right) */
+.btn-primary {
+    background: transparent; /* Transparent parent to let layered pseudoelements handle backgrounds */
+    color: var(--button-text);
+    border: 1px solid transparent;
+    position: relative;
+    z-index: 1;
+}
+
+/* Solid Default Background */
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: var(--button-primary);
+    border-radius: 8px;
+    z-index: -2;
+}
+
+/* Stretched Gradient Overlay with Clip Path sliding mask */
+.btn-primary::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(90deg, var(--gradient-start) -70%, var(--gradient-end) 170%);
+    border-radius: 8px;
+    z-index: -1;
+    clip-path: inset(0 100% 0 0); /* Start fully clipped from the right (0 width visible) */
+    transition: clip-path var(--transition-speed) ease-in-out; /* Match about me speed */
+}
+
+.btn-primary:hover::after {
+    clip-path: inset(0 0 0 0); /* Reveal full width from left to right on hover */
+}
+
+.btn-primary:hover {
+    color: #080c14; /* Legible dark font against gradient */
+    transform: scale(1.05); /* Enlarge on hover without translation */
+    transition: transform var(--transition-speed) ease-in-out, color var(--transition-speed) ease-in-out;
+}
+
+/* Secondary Button (About Me) - Grow Gradient Border Outwards on Hover (No Fill) */
+.btn-secondary {
+    background: transparent; /* No native background to prevent stacking context bugs */
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    position: relative;
+    z-index: 1;
+    transition: border-color var(--transition-speed) ease, transform var(--transition-speed) ease, color var(--transition-speed) ease;
+}
+
+/* Inner Solid Mask (Guarantees zero gradient leak in center) */
+.btn-secondary::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: var(--bg-primary);
+    border-radius: 8px;
+    z-index: -1;
+    transition: background-color var(--transition-speed) ease;
+}
+
+/* Outer Gradient Border (Transitions opacity and grows on hover) */
+.btn-secondary::after {
+    content: '';
+    position: absolute;
+    top: -1px; left: -1px; right: -1px; bottom: -1px;
+    background: linear-gradient(90deg, var(--gradient-start) -70%, var(--gradient-end) 170%);
+    border-radius: 8px;
+    z-index: -2;
+    opacity: 0;
+    transition: opacity var(--transition-speed) ease, top var(--transition-speed) ease, left var(--transition-speed) ease, right var(--transition-speed) ease, bottom var(--transition-speed) ease, border-radius var(--transition-speed) ease;
+}
+
+.btn-secondary:hover::before {
+    background-color: var(--bg-primary); /* Retain exact default background */
+}
+
+.btn-secondary:hover::after {
+    opacity: 1;
+    top: -4px; /* Grow border outwards */
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border-radius: 11px; /* Proportional corner curve */
+}
+
+.btn-secondary:hover {
+    border-color: transparent; /* Hide solid border to show gradient */
+    color: var(--text-primary) !important;
+    transform: scale(1.05); /* Enlarge on hover by the same amount as projects */
+}
+
+/* Projects section layout inside slider */
+.projects-section {
+    width: 100vw;
+}
+
+.section-container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    width: 100%;
+}
+
+.section-heading {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 3rem;
+    position: relative;
+    display: inline-block;
+}
+
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+    gap: 3rem;
+}
+
+.project-card {
+    background: transparent; /* No native background to prevent stacking context bugs */
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    height: 540px; /* Sized up from 520px to allow larger preview area */
+    cursor: pointer;
+    position: relative;
+    z-index: 1;
+    text-decoration: none; /* Strip hyperlink underline */
+    color: inherit;        /* Strip hyperlink color */
+    transition: transform var(--transition-speed) ease, border-color var(--transition-speed) ease;
+}
+
+/* Inner Solid Mask (Guarantees zero gradient leak in center of card) */
+.project-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: var(--bg-secondary);
+    border-radius: 11px;
+    z-index: -1;
+    transition: background-color var(--transition-speed) ease;
+}
+
+/* Outer Gradient Border (Transitions opacity and grows on hover) */
+.project-card::after {
+    content: '';
+    position: absolute;
+    top: -1px; left: -1px; right: -1px; bottom: -1px;
+    background: linear-gradient(90deg, var(--gradient-start) -70%, var(--gradient-end) 170%);
+    border-radius: 12px;
+    z-index: -2;
+    opacity: 0;
+    transition: opacity var(--transition-speed) ease, top var(--transition-speed) ease, left var(--transition-speed) ease, right var(--transition-speed) ease, bottom var(--transition-speed) ease, border-radius var(--transition-speed) ease;
+}
+
+.project-card:hover::after {
+    opacity: 1;
+    top: -4px; /* Grow border outwards exactly like About Me */
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border-radius: 15px; /* Proportional curve match */
+}
+
+.project-card:hover {
+    border-color: transparent; /* Hide solid border to show gradient */
+    transform: scale(1.03); /* Enlarge in place without vertical translation */
+}
+
+/* Preview graphic container */
+.project-preview-container {
+    height: 50%; /* Sized up from 40% to 50% split */
+    background-color: #0b111e;
+    position: relative;
+    border-bottom: 1px solid var(--border-color);
+    border-top-left-radius: 11px; /* Rounded top-left corner */
+    border-top-right-radius: 11px; /* Rounded top-right corner */
+    overflow: hidden; /* Clips children to these corner shapes */
+}
+
+.project-content {
+    padding: 2rem; /* Decreased padding to match info cards in ABOUT */
+    display: flex;
+    flex-direction: column;
+    height: 50%; /* Adjusted from 60% to 50% split */
+    border-bottom-left-radius: 11px;
+    border-bottom-right-radius: 11px;
+}
+
+/* Custom Vector Placeholders */
+.placeholder-graphic {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.placeholder-text {
+    position: absolute;
+    bottom: 12px;
+    font-size: 0.8rem;
+    color: #475569;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+/* TVC Graphic Animation */
+.tvc-graphic {
+    background: radial-gradient(circle at center, #1e293b 0%, #05070a 80%);
+}
+
+.tvc-graphic .rocket-body {
+    width: 12px;
+    height: 60px;
+    background-color: #cbd5e1;
+    border-radius: 2px;
+    position: relative;
+    transform: rotate(5deg);
+    animation: tvc-rock 4s ease-in-out infinite alternate;
+}
+
+.tvc-graphic .thrust-vector {
+    position: absolute;
+    bottom: -22px; /* Positioned directly under the rocket body */
+    left: 2px;
+    width: 8px;
+    height: 24px;
+    background: linear-gradient(180deg, #59ff90, transparent);
+    transform-origin: top center;
+    animation: tvc-thrust 1s ease-in-out infinite alternate;
+}
+
+.tvc-graphic .trajectory-line {
+    position: absolute;
+    width: 2px;
+    height: 100%;
+    border-left: 2px dashed rgba(77, 153, 232, 0.3);
+    transform: rotate(-10deg);
+}
+
+@keyframes tvc-rock {
+    0% { transform: rotate(-12deg) translateY(0); }
+    100% { transform: rotate(12deg) translateY(-8px); }
+}
+
+@keyframes tvc-thrust {
+    0% { transform: rotate(-20deg) scaleY(0.7); }
+    100% { transform: rotate(20deg) scaleY(1.3); }
+}
+
+/* Pendulum Graphic Animation */
+.pendulum-graphic {
+    background: radial-gradient(circle at center, #1e293b 0%, #05070a 80%);
+}
+
+.pendulum-graphic .rail {
+    position: absolute;
+    width: 80%;
+    height: 4px;
+    background-color: #334155;
+}
+
+.pendulum-graphic .cart {
+    position: absolute;
+    width: 36px;
+    height: 16px;
+    background-color: #4d99e8;
+    border-radius: 4px;
+    bottom: 50%;
+    margin-bottom: -6px;
+    animation: pendulum-move 5s ease-in-out infinite alternate;
+}
+
+.pendulum-graphic .pendulum-pole {
+    position: absolute;
+    width: 4px;
+    height: 55px;
+    background-color: #cbd5e1;
+    bottom: 12px; /* Positioned attached to the cart's pivot center */
+    left: 16px; /* Centered horizontally inside the 36px cart */
+    transform-origin: bottom center;
+    animation: pendulum-swing 5s ease-in-out infinite alternate;
+}
+
+@keyframes pendulum-move {
+    0% { transform: translateX(-60px); }
+    100% { transform: translateX(60px); }
+}
+
+@keyframes pendulum-swing {
+    0% { transform: rotate(8deg); }
+    100% { transform: rotate(-8deg); }
+}
+
+.project-action-text {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: var(--gradient-start);
+    margin-top: 1rem;
+    display: inline-block;
+}
+
+/* About section layout inside slider */
+.about-section {
+    width: 100vw;
+}
+
+.about-grid {
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    gap: 4rem;
+}
+
+.about-bio .lead-text {
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-bottom: 1.5rem;
+    color: var(--text-primary);
+}
+
+.about-bio p {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+}
+
+.about-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.info-card {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    padding: 2rem;
+    border-radius: 12px;
+}
+
+.info-card h3 {
+    font-size: 1.25rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.info-card p {
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.interests-list {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+}
+
+.interests-list li {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+/* Detail Overlay views */
+.project-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 2000;
+    background-color: rgba(5, 7, 10, 0.7);
+    backdrop-filter: blur(10px);
+    display: flex;
+    justify-content: flex-end; /* Slid-in from the right alignment */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+
+.project-overlay.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.overlay-card {
+    width: 100%;
+    max-width: 600px;
+    height: 100%;
+    background-color: var(--bg-secondary);
+    border-left: 1px solid var(--border-color);
+    padding: 3rem;
+    overflow-y: auto;
+    transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.project-overlay.active .overlay-card {
+    transform: translateX(0);
+}
+
+.close-overlay-btn {
+    background: none;
+    border: none;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--text-secondary);
+    cursor: pointer;
+    align-self: flex-start;
+    margin-bottom: 2rem;
+    transition: color var(--transition-speed);
+}
+
+.close-overlay-btn:hover {
+    color: var(--text-primary);
+}
+
+.overlay-body h2 {
+    font-size: 2.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.overlay-readme-content {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 2.5rem;
+}
+
+.overlay-readme-content p {
+    margin-bottom: 1.5rem;
+}
+
+.overlay-github-link {
+    width: fit-content;
+}
+
+/* Footer Styling */
+.footer {
+    border-top: 1px solid var(--border-color);
+    background-color: var(--bg-secondary);
+    padding: 3rem 2rem;
+    position: relative;
+    z-index: 10;
+}
+
+.footer-container {
+    max-width: var(--max-width);
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+.footer-links a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: bold;
+    transition: color var(--transition-speed);
+}
+
+.footer-links a:hover {
+    color: var(--text-primary);
+}
+
+/* Responsive Styles */
+@media (max-width: 900px) {
+    .nav-container {
+        flex-direction: column;
+        gap: 1.5rem;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+    
+    .logo-link {
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: center;
+    }
+    
+    .site-title {
+        font-size: 1.6rem !important;
+    }
+    
+    .nav-menu {
+        gap: 1rem;
+    }
+    
+    .about-grid {
+        grid-template-columns: 1fr;
+        gap: 2.5rem;
+    }
+}
+
+/* Project Detail Page Styles */
+.project-detail-main {
+    margin-top: 190px; /* Offset for header */
+    padding: 4rem 2rem;
+    min-height: calc(100vh - 190px);
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-weight: bold;
+    margin-bottom: 2rem;
+    transition: color var(--transition-speed) ease;
+}
+
+.back-link:hover {
+    color: var(--text-primary);
+}
+
+.project-article {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 3rem;
+    max-width: var(--max-width);
+    margin: 0 auto;
+}
+
+.project-detail-title {
+    font-size: 2.75rem;
+    font-weight: bold;
+    margin: 1rem 0 2rem 0;
+    line-height: 1.2;
+}
+
+.project-detail-content {
+    font-size: 1.15rem;
+    color: var(--text-secondary);
+    line-height: 1.8;
+}
+
+.project-detail-content p {
+    margin-bottom: 1.5rem;
+}
+
+.project-detail-content h3 {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin: 2rem 0 1rem 0;
+    color: var(--text-primary);
+}
+
+.project-detail-content a {
+    color: var(--gradient-start);
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.project-detail-content a:hover {
+    text-decoration: underline;
+}
+
+/* Social Links under Home buttons */
+.hero-socials {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    margin-top: 6rem; /* Moved lower down on the home section */
+}
+
+.social-link {
+    color: var(--text-secondary);
+    transition: color var(--transition-speed) ease, transform var(--transition-speed) ease;
+}
+
+.social-link:hover {
+    color: var(--text-primary);
+    transform: translateY(-3px);
+}
+
+/* GitHub icon link next to title on project pages */
+.title-github-link {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    color: var(--text-secondary);
+    margin-left: 1rem;
+    transition: color var(--transition-speed) ease, transform var(--transition-speed) ease;
+}
+
+.title-github-link svg {
+    width: 32px;
+    height: 32px;
+}
+
+.title-github-link:hover {
+    color: var(--text-primary);
+    transform: scale(1.1);
+}
+
+/* Footer separator dot */
+.footer-separator {
+    margin: 0 0.75rem;
+    color: var(--text-secondary);
+    user-select: none;
+}
+
+/* Thumbnail preview image styles */
+.preview-img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    z-index: 2;
+    transition: opacity var(--transition-speed) ease-in-out;
+}
+
+.preview-img.loaded {
+    opacity: 1; /* Fades in smoothly once loaded */
+}
+
+/* Loading spinner for readme fetching */
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--border-color);
+    border-top: 3px solid var(--gradient-start);
+    border-radius: 50%;
+    margin: 2rem auto;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Project Detail Markdown rendering format overrides */
+.project-detail-content h1,
+.project-detail-content h2,
+.project-detail-content h3,
+.project-detail-content h4 {
+    color: var(--text-primary);
+    font-weight: bold;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+}
+
+.project-detail-content h1 { font-size: 2.25rem; }
+.project-detail-content h2 { font-size: 1.75rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+.project-detail-content h3 { font-size: 1.35rem; }
+
+.project-detail-content p {
+    font-size: 1.15rem;
+    color: var(--text-secondary);
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+}
+
+.project-detail-content ul, 
+.project-detail-content ol {
+    margin-left: 2rem;
+    margin-bottom: 1.5rem;
+    color: var(--text-secondary);
+}
+
+.project-detail-content li {
+    font-size: 1.15rem;
+    margin-bottom: 0.5rem;
+}
+
+.project-detail-content code {
+    background-color: var(--bg-primary);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+.project-detail-content pre {
+    background-color: var(--bg-primary);
+    padding: 1.5rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border-color);
+}
+
+.project-detail-content pre code {
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
+    font-size: 0.9rem;
+}
+
+/* Floating Project Navigation Arrows */
+.project-nav-arrow {
+    position: fixed;
+    top: 55%;
+    transform: translateY(-50%);
+    width: 60px;
+    height: 60px;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    z-index: 1000;
+    transition: color var(--transition-speed) ease, border-color var(--transition-speed) ease, background-color var(--transition-speed) ease, transform var(--transition-speed) ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.project-nav-arrow svg {
+    width: 24px;
+    height: 24px;
+}
+
+.project-nav-arrow:hover {
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+    border-color: var(--gradient-start);
+}
+
+.prev-project {
+    left: 4rem;
+}
+
+.prev-project:hover {
+    transform: translateY(-50%) translateX(-4px);
+}
+
+.next-project {
+    right: 4rem;
+}
+
+.next-project:hover {
+    transform: translateY(-50%) translateX(4px);
+}
+
+/* Hide navigation arrows on small screens */
+@media (max-width: 1200px) {
+    .project-nav-arrow {
+        display: none;
+    }
+}
+
+/* Centered display math blocks styles for KaTeX */
+.project-detail-content .katex-display {
+    margin: 1.5rem 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: 0.5rem 0;
+}
+
+/* Project Detail Banner Image styling */
+.project-detail-banner-container {
+    width: 100%;
+    margin-top: 1.5rem;
+    margin-bottom: 2rem;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    background-color: #05070a;
+}
+
+.project-detail-banner {
+    width: 100%;
+    max-height: 480px;
+    object-fit: cover;
+    display: block;
+    opacity: 0;
+    transition: opacity var(--transition-speed) ease-in-out;
+}
+
+.project-detail-banner.loaded {
+    opacity: 1; /* Fade-in animation once thumbnail is fetched successfully */
+}
+
+/* Tooltip styles for floating navigation arrows */
+.nav-arrow-tooltip {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%) scale(0.9);
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease, border-color var(--transition-speed) ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+    z-index: 1010;
+}
+
+.prev-project .nav-arrow-tooltip {
+    left: 75px;
+}
+
+.prev-project:hover .nav-arrow-tooltip {
+    transform: translateY(-50%) scale(1);
+    opacity: 1;
+}
+
+.next-project .nav-arrow-tooltip {
+    right: 75px;
+}
+
+.next-project:hover .nav-arrow-tooltip {
+    transform: translateY(-50%) scale(1);
+    opacity: 1;
+}
+
+/* YouTube Local Fallback Card (for local file:// viewing) */
+.local-video-fallback {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    padding: 2.5rem 2rem;
+    border-radius: 12px;
+    color: var(--text-primary);
+    text-decoration: none;
+    margin-top: 1rem;
+    margin-bottom: 1.5rem;
+    transition: border-color var(--transition-speed) ease, background-color var(--transition-speed) ease, transform var(--transition-speed) ease;
+    text-align: center;
+}
+
+.local-video-fallback:hover {
+    border-color: #ef4444;
+    background-color: var(--bg-primary);
+    transform: translateY(-2px);
+    text-decoration: none;
+}
+
+.local-video-fallback svg {
+    width: 48px;
+    height: 48px;
+    color: #ef4444;
+    margin-bottom: 0.75rem;
+}
+
+.local-video-fallback span {
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+.local-video-fallback .local-video-note {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: normal;
+    margin-top: 0.25rem;
+}
+
+/* Horizontal sliding animation container for project details pages */
+.project-slider-viewport {
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+    border-radius: 12px;
+}
+
+.project-slider-wrapper {
+    display: flex;
+    width: 100%;
+    align-items: flex-start;
+    transition: transform var(--transition-speed) cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.project-article {
+    width: 100%;
+    flex-shrink: 0;
+}

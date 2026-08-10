@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Rajat Bidarkota - Mechanical Engineering Undergrad at Caltech. Specializing in Systems, Control, and Aerospace.">
+    <title>Rajat Bidarkota</title>
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
+    <link rel="stylesheet" href="style.css">
+    <script>
+        // Immediate theme setup to prevent visual flash of light/dark mode on reload
+        (function() {
+            let savedTheme = null;
+            try {
+                savedTheme = localStorage.getItem('theme');
+            } catch (e) {
+                console.warn('localStorage is blocked in this environment.');
+            }
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlTheme = urlParams.get('theme');
+            
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            let initialTheme = urlTheme || savedTheme || (systemPrefersDark ? 'dark' : 'light');
+            if (initialTheme !== 'dark' && initialTheme !== 'light') {
+                initialTheme = systemPrefersDark ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', initialTheme);
+        })();
+
+        // Fallback handler for GitHub raw repository images
+        function tryAlternativeExtensions(img) {
+            const extensions = ['png', 'jpg', 'jpeg', 'gif'];
+            const currentSrc = img.src;
+            
+            // Extract current extension from source url
+            const extMatch = currentSrc.match(/\.([a-z0-9]+)(\?|$)/i);
+            if (extMatch) {
+                const currentExt = extMatch[1].toLowerCase();
+                const nextIndex = extensions.indexOf(currentExt) + 1;
+                
+                // Try the next file extension in the array
+                if (nextIndex < extensions.length) {
+                    const newSrc = currentSrc.replace(/\.[a-z0-9]+(\?|$)/i, '.' + extensions[nextIndex]);
+                    img.src = newSrc;
+                    return;
+                }
+            }
+            // If all file extensions fail, hide the image and display the animated vector graphic fallback
+            img.style.display = 'none';
+        }
+    </script>
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="navbar header-large" id="navbar">
+        <div class="nav-container">
+            <a href="#home" class="logo-link" id="logo-nav">
+                <img src="logo.svg" alt="Rajat Bidarkota Logo" class="logo-img">
+                <span class="site-title">Rajat Bidarkota</span>
+            </a>
+            <nav class="nav-menu">
+                <a href="#home" class="nav-link active" id="link-home">HOME</a>
+                <a href="#projects" class="nav-link" id="link-projects">PROJECTS</a>
+                <a href="#about" class="nav-link" id="link-about">ABOUT</a>
+            </nav>
+            <div class="theme-toggle-container">
+                <button id="theme-toggle" aria-label="Toggle Theme" class="theme-btn">
+                    <span class="theme-icon"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Outer slider container to hold the sliding pages -->
+    <div class="page-slider-viewport">
+        <div class="sections-slider" id="sections-slider">
+            
+            <!-- HOME PAGE -->
+            <section id="section-home" class="slider-page hero-section">
+                <div class="hero-container">
+                    <p class="hero-subtitle">
+                        I am a Mechanical Engineering undergraduate at Caltech, concentrating in Systems and Control with an Aerospace minor. I'm interested in intelligent hardware systems and vehicles, particularly their integration with controls. Through some of my projects and work, I realized that I enjoy working on guidance, navigation, and control systems for vehicles, including classical and physics-based control, learned/adaptive control, and embedded deployment. Thanks for checking out my page, and hope you like my projects! Please feel free to reach out.
+                    </p>
+                    <div class="hero-actions">
+                        <a href="#projects" class="btn btn-primary" id="btn-to-projects">Explore Projects</a>
+                        <a href="#about" class="btn btn-secondary" id="btn-to-about">About Me</a>
+                    </div>
+                    <div class="hero-socials">
+                        <a href="https://github.com/rajet99" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="GitHub">
+                            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+                                <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.167 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.137 20.164 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
+                            </svg>
+                        </a>
+                        <a href="https://www.linkedin.com/in/rajat-bidarkota/" target="_blank" rel="noopener noreferrer" class="social-link" aria-label="LinkedIn">
+                            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor">
+                                <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- PROJECTS PAGE -->
+            <section id="section-projects" class="slider-page projects-section">
+                <div class="section-container">
+                    <h2 class="section-heading">Projects</h2>
+                    <div class="projects-grid">
+                        
+                        <!-- TVC Rocket Project Box (Direct Anchor Link) -->
+                        <a href="projects/TVC/index.html" class="project-card" id="card-tvc-rocket">
+                            <div class="project-preview-container">
+                                <!-- Animated vector graphic remains in HTML as the background/fallback -->
+                                <div class="placeholder-graphic tvc-graphic">
+                                    <div class="trajectory-line"></div>
+                                    <div class="rocket-body">
+                                        <div class="thrust-vector"></div>
+                                    </div>
+                                    <span class="placeholder-text">TVC Simulation Preview</span>
+                                </div>
+                                <!-- Raw image overlay fetched from the GitHub repository -->
+                                <img src="https://raw.githubusercontent.com/rajet99/tvc-experimentation/main/rocket.png" alt="TVC Rocket Thumbnail" class="preview-img" onload="this.classList.add('loaded')" onerror="tryAlternativeExtensions(this)">
+                            </div>
+                            <div class="project-content">
+                                <span class="project-tag">Aerospace &amp; GNC</span>
+                                <h3 class="project-title">TVC Rocket</h3>
+                                <p class="project-description">
+                                    A thrust vector control rocket simulation project, with the long-term goal of flying a real rocket. Click to learn more about the generalized control system architecture.
+                                </p>
+                                <span class="project-action-text">Read Details &rarr;</span>
+                            </div>
+                        </a>
+
+                        <!-- Inverted Pendulum Project Box (Direct Anchor Link) -->
+                        <a href="projects/inverted-pendulum/index.html" class="project-card" id="card-inverted-pendulum">
+                            <div class="project-preview-container">
+                                <!-- Animated vector graphic remains in HTML as the background/fallback -->
+                                <div class="placeholder-graphic pendulum-graphic">
+                                    <div class="rail"></div>
+                                    <div class="cart">
+                                        <div class="pendulum-pole"></div>
+                                    </div>
+                                    <span class="placeholder-text">Inverted Pendulum Preview</span>
+                                </div>
+                                <!-- Raw image overlay fetched from the GitHub repository -->
+                                <img src="https://raw.githubusercontent.com/rajet99/inverted-pendulum/main/balance.png" alt="Inverted Pendulum Thumbnail" class="preview-img" onload="this.classList.add('loaded')" onerror="tryAlternativeExtensions(this)">
+                            </div>
+                            <div class="project-content">
+                                <span class="project-tag">Control Theory &amp; Embedded</span>
+                                <h3 class="project-title">Linear Inverted Pendulum</h3>
+                                <p class="project-description">
+                                    A linear inverted pendulum simulation and control project serving as the foundational testbed for a physical self-balancing cart-pole system.
+                                </p>
+                                <span class="project-action-text">Read Details &rarr;</span>
+                            </div>
+                        </a>
+
+                    </div>
+                </div>
+            </section>
+
+            <!-- ABOUT PAGE -->
+            <section id="section-about" class="slider-page about-section">
+                <div class="section-container">
+                    <h2 class="section-heading">About Me</h2>
+                    <div class="about-grid">
+                        <div class="about-bio">
+                            <p class="lead-text">
+                                Hi, I'm Rajat Bidarkota. I'm a junior studying Mechanical Engineering at California Institute of Technology (Caltech).
+                            </p>
+                            <p>
+                                My academic concentration is focused heavily on <strong>Systems and Control</strong>, complemented by a minor in <strong>Aerospace Engineering</strong>. I am fascinated by complex systems that require real-time physical stabilization, precise trajectory planning, and robust adaptation to environmental disturbances.
+                            </p>
+                        </div>
+                        <div class="about-details">
+                            <div class="info-card">
+                                <h3>Education</h3>
+                                <p class="institution">California Institute of Technology</p>
+                                <p class="degree">B.S. in Mechanical Engineering (Systems &amp; Control Focus)</p>
+                                <p class="minor">Minor in Aerospace Engineering</p>
+                            </div>
+                            <div class="info-card">
+                                <h3>Interests</h3>
+                                <ul class="interests-list">
+                                    <li>Dynamics &amp; Control, GNC</li>
+                                    <li>Embedded Systems (ESP32, Arduino, Raspberry Pi, C/C++)</li>
+                                    <li>Aerospace Systems &amp; Vehicles</li>
+                                    <li>Adaptive &amp; Learned Control</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <p>&copy; 2026 Rajat Bidarkota. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="https://github.com/rajet99" target="_blank" rel="noopener noreferrer">GitHub</a>
+                <span class="footer-separator">&bull;</span>
+                <a href="https://www.linkedin.com/in/rajat-bidarkota/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
