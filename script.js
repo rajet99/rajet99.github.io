@@ -131,19 +131,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Helper to calculate the repository/site root path cleanly
+    // Helper to calculate the repository/site root path cleanly (iteratively strips all SPA route segments)
     const getSiteRoot = () => {
         let path = window.location.pathname;
-        if (path.length > 1 && path.endsWith('/')) {
-            path = path.slice(0, -1);
-        }
-        if (path.endsWith('/index.html')) {
-            path = path.slice(0, -11);
-        }
-        for (const page of pages) {
-            if (path === '/' + page || path.endsWith('/' + page)) {
-                path = path.slice(0, -(page.length + 1));
-                break;
+        let changed = true;
+        while (changed) {
+            changed = false;
+            if (path.length > 1 && path.endsWith('/')) {
+                path = path.slice(0, -1);
+                changed = true;
+            }
+            if (path.endsWith('/index.html')) {
+                path = path.slice(0, -11);
+                changed = true;
+            }
+            for (const page of pages) {
+                if (path === '/' + page || path.endsWith('/' + page)) {
+                    path = path.slice(0, -(page.length + 1));
+                    changed = true;
+                    break;
+                }
             }
         }
         return path.endsWith('/') ? path : path + '/';
