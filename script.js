@@ -131,6 +131,24 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // Helper to calculate the repository/site root path cleanly
+    const getSiteRoot = () => {
+        let path = window.location.pathname;
+        if (path.length > 1 && path.endsWith('/')) {
+            path = path.slice(0, -1);
+        }
+        if (path.endsWith('/index.html')) {
+            path = path.slice(0, -11);
+        }
+        for (const page of pages) {
+            if (path === '/' + page || path.endsWith('/' + page)) {
+                path = path.slice(0, -(page.length + 1));
+                break;
+            }
+        }
+        return path.endsWith('/') ? path : path + '/';
+    };
+
     // Main navigation router function
     const navigateTo = (pageId, updateUrl = true) => {
         if (!pages.includes(pageId)) return;
@@ -144,11 +162,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isLocalFile) {
                 window.location.hash = `${pageId}?${themeParam}`;
             } else {
-                // hosted on github.io/repo subfolder or custom domain
-                const path = window.location.pathname;
-                const repoPath = path.substring(0, path.lastIndexOf('/index.html')) || path.substring(0, path.lastIndexOf('/')) || '';
-                const cleanRoot = repoPath.endsWith('/') ? repoPath : repoPath + '/';
-                const targetPath = pageId === 'home' ? cleanRoot : cleanRoot + pageId;
+                const root = getSiteRoot();
+                const targetPath = pageId === 'home' ? root : root + pageId;
                 
                 history.pushState({ pageId }, '', `${targetPath}?${themeParam}`);
             }
@@ -160,13 +175,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Get page from current URL pathname or hash
     const getPageFromUrl = () => {
+        if (window.location.hash) {
+            const rawHash = window.location.hash.replace('#', '');
+            const cleanHash = rawHash.split('?')[0];
+            if (pages.includes(cleanHash)) {
+                return cleanHash;
+            }
+        }
+
         if (isLocalFile) {
-            const hash = window.location.hash.replace('#', '') || 'home';
-            const cleanHash = hash.split('?')[0];
-            return pages.includes(cleanHash) ? cleanHash : 'home';
+            return 'home';
         } else {
             const path = window.location.pathname;
-            const segments = path.split('/').filter(Boolean);
+            const segments = path.split('/').filter(s => s && s !== 'index.html');
             const lastSegment = segments[segments.length - 1] || 'home';
             return pages.includes(lastSegment) ? lastSegment : 'home';
         }
@@ -229,15 +250,26 @@ document.addEventListener('DOMContentLoaded', () => {
     const redirectPath = urlParams.get('redirect');
     if (redirectPath && !isLocalFile) {
         // Resolve target subpage from redirect path string
-        const targetPage = redirectPath.split('/').filter(Boolean).pop() || 'home';
+        const cleanSegments = redirectPath.split('/').filter(s => s && s !== 'index.html');
+        const targetPage = cleanSegments.length > 0 ? cleanSegments[cleanSegments.length - 1] : 'home';
+
         if (pages.includes(targetPage)) {
             // Clear URL search params immediately to restore clean address bar
             const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-            const cleanUrl = window.location.origin + redirectPath + `?theme=${currentTheme}`;
+            const root = getSiteRoot();
+            const cleanTargetPath = targetPage === 'home' ? root : root + targetPage;
+            const cleanUrl = window.location.origin + cleanTargetPath + `?theme=${currentTheme}`;
             window.history.replaceState({}, '', cleanUrl);
             
             // Navigate to page panel index
             slideToPage(targetPage);
+        } else {
+            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+            const root = getSiteRoot();
+            const cleanUrl = window.location.origin + root + `?theme=${currentTheme}`;
+            window.history.replaceState({}, '', cleanUrl);
+            const initialPage = getPageFromUrl();
+            slideToPage(initialPage);
         }
     } else {
         // Initial setup load based on landing URL

@@ -4,22 +4,56 @@
     <meta charset="utf-8">
     <title>Redirecting...</title>
     <script>
-        // Extract the original target path, search queries, and hashes
-        const path = window.location.pathname;
-        const search = window.location.search;
-        const hash = window.location.hash;
-        
-        // Find the root path (helps support both custom domains and github.io/repo subfolder paths)
-        // If hosted on github.io/repository-name/, extract the repo subdirectory path
-        const pathSegments = path.split('/');
-        // TVC and inverted-pendulum pages exist as actual folders, so let them fall through (they are not 404 routes)
-        if (!path.includes('/projects/TVC') && !path.includes('/projects/inverted-pendulum')) {
-            const repoPath = pathSegments.slice(0, 2).join('/');
-            
-            // Re-route to the main index.html landing page, passing the clean target path as a redirect parameter
-            const redirectUrl = window.location.origin + repoPath + '/index.html?redirect=' + encodeURIComponent(path) + (search ? '&' + search.substring(1) : '') + hash;
+        (function() {
+            const path = window.location.pathname;
+            const search = window.location.search;
+            const hash = window.location.hash;
+            const origin = window.location.origin;
+
+            // SPA routes in main application
+            const spaPages = ['home', 'projects', 'about'];
+
+            // 1. Break infinite redirect loops if redirect query parameter is already present
+            const urlParams = new URLSearchParams(search);
+            if (urlParams.has('redirect')) {
+                urlParams.delete('redirect');
+                const cleanQuery = urlParams.toString();
+                const safeUrl = origin + '/index.html' + (cleanQuery ? '?' + cleanQuery : '') + hash;
+                window.location.replace(safeUrl);
+                return;
+            }
+
+            // 2. Handle direct physical project subfolder redirects if accessed without trailing slash or wrong casing
+            const lowerPath = path.toLowerCase();
+            if (lowerPath.includes('/projects/tvc')) {
+                window.location.replace(origin + '/projects/TVC/index.html' + search + hash);
+                return;
+            }
+            if (lowerPath.includes('/projects/inverted-pendulum')) {
+                window.location.replace(origin + '/projects/inverted-pendulum/index.html' + search + hash);
+                return;
+            }
+
+            // 3. Determine repository root path:
+            // If hosted at root (rajet99.github.io or custom domain), repoPath is ""
+            // If hosted under github.io subfolder (user.github.io/myrepo), repoPath is "/myrepo"
+            const segments = path.split('/').filter(Boolean);
+            let repoPath = '';
+
+            if (segments.length > 0) {
+                const firstSegment = segments[0];
+                if (!spaPages.includes(firstSegment) && firstSegment !== 'index.html') {
+                    repoPath = '/' + firstSegment;
+                }
+            }
+
+            // Build single-page app redirect URL targeting root index.html
+            const redirectParam = 'redirect=' + encodeURIComponent(path);
+            const extraSearch = search ? '&' + search.substring(1) : '';
+            const redirectUrl = origin + repoPath + '/index.html?' + redirectParam + extraSearch + hash;
+
             window.location.replace(redirectUrl);
-        }
+        })();
     </script>
 </head>
 <body>
