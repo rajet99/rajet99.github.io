@@ -72,8 +72,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 try {
                     const hashIndex = href.indexOf('#');
                     let cleanHref = hashIndex !== -1 ? href.substring(0, hashIndex) : href;
-                    const hash = hashIndex !== -1 ? href.substring(hashIndex) : '';
+                    let hash = hashIndex !== -1 ? href.substring(hashIndex) : '';
                     
+                    // If hosted on a server (not file://), convert index.html#page hash links to clean SPA paths
+                    if (!isLocal && cleanHref.includes('index.html') && hash) {
+                        const targetSection = hash.replace('#', '').split('?')[0];
+                        if (targetSection === 'projects') {
+                            cleanHref = '../../projects';
+                            hash = '';
+                        } else if (targetSection === 'about') {
+                            cleanHref = '../../about';
+                            hash = '';
+                        } else if (targetSection === 'home') {
+                            cleanHref = '../../';
+                            hash = '';
+                        }
+                    }
+
                     const queryIndex = cleanHref.indexOf('?');
                     if (queryIndex !== -1) {
                         const params = new URLSearchParams(cleanHref.substring(queryIndex + 1));
