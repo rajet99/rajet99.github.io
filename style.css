@@ -657,7 +657,11 @@ html, body {
 
 .project-card:hover .card-github-icon {
     color: var(--text-primary);
-    transform: scale(1.15);
+    transform: scale(1);
+}
+
+.project-card:hover .card-github-icon:hover {
+    transform: scale(1.35);
 }
 
 /* About section layout inside slider */

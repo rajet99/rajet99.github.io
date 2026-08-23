@@ -14,12 +14,7 @@ Specifically, the software architecture separates into two main layers:
 
 The sensor array relies on three infrared phototransistors mounted slightly above the floor. Raw sensor readings pass through continuous-time exponential moving averages to prevent single-sample noise, floor scuffs, and crosswalks from triggering false transitions.
 
-<video controls preload="metadata" width="100%">
-  <source src="IMG_3472.mp4" type="video/mp4">
-  <a href="IMG_3472.mp4">Watch line-following demonstration</a>
-</video>
-
-[Watch line-following demonstration on YouTube](https://youtu.be/sorNZZaBAyg)
+[Watch line-following demonstration on YouTube](https://youtu.be/iHh2Qe0sKe0)
 
 ### Dynamic Filtering and Hysteresis
 
