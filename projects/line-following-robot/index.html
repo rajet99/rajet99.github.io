@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Autonomous Line-Following Robot Details - Rajat Bidarkota">
+    <title>Autonomous Line-Following Robot - Rajat Bidarkota</title>
+    <link rel="icon" type="image/svg+xml" href="../../logo.svg">
+    <link rel="stylesheet" href="../../style.css">
+    
+    <!-- Shared Project Engine Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- KaTeX LaTeX Renderer -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex/dist/contrib/auto-render.min.js"></script>
+    
+    <script>
+        (function() {
+            let savedTheme = null;
+            try {
+                savedTheme = localStorage.getItem('theme');
+            } catch (e) {
+                console.warn('localStorage is blocked in this environment.');
+            }
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlTheme = urlParams.get('theme');
+            
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            let initialTheme = urlTheme || savedTheme || (systemPrefersDark ? 'dark' : 'light');
+            if (initialTheme !== 'dark' && initialTheme !== 'light') {
+                initialTheme = systemPrefersDark ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', initialTheme);
+        })();
+    </script>
+    
+    <!-- Shared Project Engine -->
+    <script src="../project-detail.js" defer></script>
+</head>
+<body data-project-id="line-following-robot">
+    <!-- Navigation Header -->
+    <header class="navbar header-large" id="navbar">
+        <div class="nav-container">
+            <a href="../../index.html#home" class="logo-link" id="logo-nav">
+                <img src="../../logo.svg" alt="Rajat Bidarkota Logo" class="logo-img">
+                <span class="site-title">Rajat Bidarkota</span>
+            </a>
+            <nav class="nav-menu">
+                <a href="../../index.html#home" class="nav-link">HOME</a>
+                <a href="../../index.html#projects" class="nav-link active">PROJECTS</a>
+                <a href="../../index.html#about" class="nav-link">ABOUT</a>
+            </nav>
+            <div class="theme-toggle-container">
+                <button id="theme-toggle" aria-label="Toggle Theme" class="theme-btn">
+                    <span class="theme-icon"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Project Detail Content -->
+    <main class="project-detail-main">
+        <div class="section-container">
+            <a href="../../index.html#projects" class="back-link">&larr; Back to Projects</a>
+            <article class="project-article">
+                <div class="project-cards-layout">
+                    <!-- Header Card -->
+                    <div class="project-header-card">
+                        <span class="project-tag">Robotics &amp; Embedded Systems</span>
+                        <h1 class="project-detail-title">
+                            Autonomous Line-Following Robot
+                        </h1>
+                        <div class="project-detail-banner-container">
+                            <img class="project-detail-banner loaded" src="ME129.jpg" alt="Autonomous Line-Following Robot Thumbnail">
+                        </div>
+                        <div class="project-description-section">
+                            <div class="project-description-content" id="project-description-content">
+                                <p>An autonomous differential-drive robot that combines closed-loop line tracking with continuous state estimation, topological SLAM (simultaneous localization and mapping) over a Manhattan grid, shortest-path planning via Dijkstra's algorithm, and directed frontier exploration with ultrasonic obstacle avoidance.</p>
+                            </div>
+                            <div class="project-notes-content">
+                                <strong>Note:</strong> <span class="editable-note">Project notes and highlights will go here.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Details Card -->
+                    <div class="project-details-card">
+                        <div class="project-detail-content" id="readme-content">
+                    <h2>Overview</h2>
+                    <p>The robot navigates a discrete graph where tape intersections serve as nodes $(x, y)$ and road segments serve as traversable edges along eight compass headings ($45^\circ$ increments).</p>
+                    <p>The software architecture separates into two main layers:</p>
+                    <ul>
+                        <li><strong>Low-Level Sensing and State Estimation:</strong> Continuous first-order IIR filtering with Schmitt-trigger hysteresis thresholds to extract road states, filter floor noise, and recover from off-track deviations.</li>
+                        <li><strong>Topological Mapping and Planning:</strong> Graph-based SLAM using Dijkstra's algorithm for known routes and heuristic multi-goal seeding for directed frontier exploration.</li>
+                    </ul>
+
+                    <h2>State Estimation and Line Following</h2>
+                    <p>The sensor array uses three infrared phototransistors mounted slightly above the floor. Raw sensor readings pass through continuous-time exponential moving averages to prevent single-sample noise, floor scuffs, and crosswalks from triggering false transitions.</p>
+
+                    <h3>Dynamic Filtering and Hysteresis</h3>
+                    <p>Internal confidence levels update during each fast control loop:</p>
+                    <p>$$\text{level}(t) = \text{level}(t - \Delta t) + \frac{\Delta t}{\tau} \big(\text{raw}(t) - \text{level}(t - \Delta t)\big)$$</p>
+                    <p>State transitions rely on an asymmetric hysteresis band:</p>
+                    <ul>
+                        <li><strong>Intersection Detection:</strong> Triggers when all three sensors detect dark tape (1, 1, 1). The time constant requires sustained coverage over the intersection footprint, filtering out thin perpendicular bike paths, potholes, and tape splices.</li>
+                        <li><strong>End-of-Street Detection:</strong> Triggers on sustained (0, 0, 0) readings when centered. The robot executes a short forward pull-through after detection to verify dead ends on short stubs.</li>
+                        <li><strong>Road-Side Tracking:</strong> Tracks lateral displacement to detect line departures.</li>
+                        <li><strong>Spin-to-Street Detection:</strong> Uses the center IR sensor to confirm when the robot has fully left its previous street and aligned with a new branch during in-place spins.</li>
+                    </ul>
+
+                    <h3>Road-Side Estimator and Off-Line Recovery</h3>
+                    <p>When the robot loses the line entirely, it references its lateral bias state:</p>
+                    <p>$$\text{raw\_side} = \begin{cases}  0.0 &amp; \text{Centered: } (0, 1, 0) \\ +0.5 &amp; \text{Slightly Left: } (0, 1, 1) \\ +1.0 &amp; \text{Far Left: } (0, 0, 1) \\ -0.5 &amp; \text{Slightly Right: } (1, 1, 0) \\ -1.0 &amp; \text{Far Right: } (1, 0, 0) \\ \text{level}_{\text{previous}} &amp; \text{Off the Line: } (0, 0, 0) \end{cases}$$</p>
+                    <p>If knocked off the line ((0, 0, 0)), the estimator keeps its integrated directional history instead of resetting to neutral. The controller triggers a corrective spin (<code>SPIN_LEFT</code> for rightward bias, <code>SPIN_RIGHT</code> for leftward bias) until the line is recaptured. Normal tracking uses a turn-and-hook policy with small turns for minor tracking errors and single-wheel hooks for larger deviations.</p>
+
+                    <h3>Kinematics and Turn Alignment</h3>
+                    <ul>
+                        <li><strong>Intersection Pull-Through:</strong> After detecting an intersection, the robot drives straight briefly to center its differential rotation axis over the intersection centroid before initiating a turn.</li>
+                        <li><strong>Angular Odometry:</strong> An analog rate gyroscope is sampled through an ADC interface. Turn angles are calculated by integrating angular velocity:
+                        $$\Delta\theta = \int_{t_{\text{start}}}^{t_{\text{stop}}} \omega(t)\,dt$$
+                        Integrated angles are checked against map-predicted branch angles to enforce alignment to $45^\circ$ increments.</li>
+                    </ul>
+
+                    <h2>Topological Mapping and Directed Exploration</h2>
+                    <p>The environment is represented as a topological graph where nodes are intersection objects and edges are traversable road segments across eight compass headings (0: North, 1: NW, 2: West, 3: SW, 4: South, 5: SE, 6: East, 7: NE).</p>
+                    <p>Edge states follow a fixed progression:</p>
+                    <p><strong>UNKNOWN &rarr; UNEXPLORED &rarr; {CONNECTED, DEADEND, NONEXISTENT}</strong></p>
+                    <p>Opposite directions across adjacent intersections update symmetrically during traversal. Because $45^\circ$-adjacent street segments do not physically co-exist on the grid, confirming an edge as <code>CONNECTED</code> or <code>UNEXPLORED</code> automatically sets adjacent headings at $(h \pm 1) \pmod 8$ to <code>NONEXISTENT</code>.</p>
+
+                    <h3>Shortest-Path Planning</h3>
+                    <p>Dijkstra's algorithm runs on the topological graph using a priority queue. Traversal weights reflect physical geometry ($c = 1.0$ for cardinal moves, $c = \sqrt{2}$ for diagonals).</p>
+                    <p>Nodes store single-step exit headings rather than static routes, allowing reactive replanning at each intersection:</p>
+                    <ol>
+                        <li>The target intersection is placed in the priority queue at $\text{Cost} = 0$, with all other nodes initialized to $\text{Cost} = \infty$.</li>
+                        <li>Nodes pop in order of lowest cost, evaluating connected and unblocked outgoing edges.</li>
+                        <li>For each valid neighbor, candidate cost $\text{Cost}_{\text{curr}} + \text{dist}(h)$ is computed. If lower than the current cost, the neighbor updates and resorts within the queue.</li>
+                    </ol>
+
+                    <h3>Exploration Logic</h3>
+                    <ul>
+                        <li><strong>Local Discovery:</strong> At an intersection with <code>UNKNOWN</code> headings, the robot sweeps rightward to detect branches. If unblocked <code>UNEXPLORED</code> edges exist, it takes the nearest one.</li>
+                        <li><strong>Global Frontier Routing:</strong> When all local edges are resolved, Dijkstra seeds with all unfinished intersections across the map at $\text{Cost} = 0$. Outward propagation builds a gradient tree routing the robot to the nearest frontier. Exploration finishes once all reachable edges are resolved.</li>
+                        <li><strong>Directed Exploration:</strong> When assigned an unvisited coordinate $(x_{\text{goal}}, y_{\text{goal}})$ or when known paths are blocked:
+                            <ul>
+                                <li><strong>Local Steering:</strong> Unexplored local branches are ranked by Euclidean distance to the target:
+                                $$\arg\min_{h \in \text{Unexplored}} \sqrt{(x_h - x_{\text{goal}})^2 + (y_h - y_{\text{goal}})^2}$$</li>
+                                <li><strong>Global Heuristic Seeding:</strong> Unfinished candidate intersections are seeded into the Dijkstra queue with a distance penalty:
+                                $$\text{Cost}_{\text{initial}}(x, y) = 1.5 \cdot \sqrt{(x - x_{\text{goal}})^2 + (y - y_{\text{goal}})^2}$$
+                                Dijkstra minimizes accumulated path length plus remaining heuristic distance, prioritizing frontiers toward the target. If all paths remain blocked, transient blockage flags reset to retry candidate routes.</li>
+                            </ul>
+                        </li>
+                    </ul>
+
+                    <h2>Obstacle Avoidance and Street Traversal</h2>
+                    <p>Obstacle detection runs on three ultrasonic sensors triggered in a background thread with randomized timing jitter to avoid acoustic cross-talk.</p>
+                    <p>Readings update sliding sample counters to classify obstacles into zones:</p>
+                    <ul>
+                        <li><strong>Emergency Stop:</strong> Triggered on close-range obstructions directly ahead.</li>
+                        <li><strong>Street Clearance:</strong> Checked along cardinal and diagonal paths before committing to branch traversals.</li>
+                    </ul>
+
+                    <h3>Obstacle Response Logic</h3>
+                    <ul>
+                        <li><strong>Standard Streets:</strong> If an obstacle appears during line following, the robot stops briefly. If the obstruction persists, it executes a mid-street U-turn and tracks back toward the previous intersection. If the return path is also blocked, it performs a second U-turn (capped to prevent heading drift) and halts until the path clears.</li>
+                        <li><strong>Dead Ends:</strong> The robot executes an unconditional $180^\circ$ turn at a dead end. If an obstacle appears during the return trip, mid-street U-turns are disabled, and the robot holds position until the corridor clears.</li>
+                    </ul>
+                </div>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <p>&copy; 2026 Rajat Bidarkota. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="mailto:rbidarko@caltech.edu">Email</a>
+                <span class="footer-separator">&bull;</span>
+                <a href="https://github.com/rajet99" target="_blank" rel="noopener noreferrer">GitHub</a>
+                <span class="footer-separator">&bull;</span>
+                <a href="https://www.linkedin.com/in/rajat-bidarkota/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

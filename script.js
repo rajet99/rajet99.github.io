@@ -107,11 +107,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const isLocalFile = window.location.protocol === 'file:';
 
     // Slide to target page
+    let slideTimer = null;
     const slideToPage = (pageId) => {
+        document.querySelectorAll(".slider-page").forEach(page => page.classList.remove("collapsed"));
         const pageIndex = pages.indexOf(pageId);
         if (pageIndex !== -1) {
             // Slide the page container horizontally (percentage-based relative to 300% width slider)
             sectionsSlider.style.transform = `translateX(-${(pageIndex * 100) / 3}%)`;
+            clearTimeout(slideTimer);
+            slideTimer = setTimeout(() => {
+                document.querySelectorAll(".slider-page").forEach(page => {
+                    if (page.id !== "section-" + pageId) {
+                        page.classList.add("collapsed");
+                    }
+                });
+            }, 400);
             
             // Update navigation link active styling
             navLinks.forEach(link => {

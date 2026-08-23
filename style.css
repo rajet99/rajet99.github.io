@@ -277,6 +277,7 @@ html, body {
 .sections-slider {
     display: flex;
     width: 300%; /* 3 pages relative to viewport parent */
+    align-items: flex-start;
     transition: transform 0.4s cubic-bezier(0.76, 0, 0.24, 1); /* Faster panel slider transition */
     will-change: transform;
 }
@@ -947,12 +948,11 @@ html, body {
 }
 
 .project-article {
-    background-color: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 3rem;
     max-width: var(--max-width);
     margin: 0 auto;
+    background: none;
+    border: none;
+    padding: 0;
 }
 
 .project-detail-title {
@@ -1140,9 +1140,11 @@ html, body {
     align-items: center;
     justify-content: center;
     color: var(--text-secondary);
+    text-decoration: none;
     z-index: 1000;
     transition: color var(--transition-speed) ease, border-color var(--transition-speed) ease, background-color var(--transition-speed) ease, transform var(--transition-speed) ease;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
 }
 
 .project-nav-arrow svg {
@@ -1311,4 +1313,42 @@ html, body {
 .project-article {
     width: 100%;
     flex-shrink: 0;
+}
+
+.slider-page.collapsed {
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    overflow: hidden !important;
+    visibility: hidden !important;
+}
+
+/* --- Multi-Card Project Layout --- */
+.project-cards-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    width: 100%;
+}
+
+.project-header-card, .project-details-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Blue bar indicator for Project Notes */
+.project-notes-content {
+    border-left: 4px solid var(--gradient-start);
+    background: color-mix(in srgb, var(--gradient-start) 8%, transparent);
+    padding: 1rem 1.25rem;
+    border-radius: 0 8px 8px 0;
+    margin-top: 1.5rem;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
 }

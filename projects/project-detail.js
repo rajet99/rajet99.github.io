@@ -16,6 +16,33 @@ const PROJECTS_DATABASE = {
         image: "balance.png",
         githubUrl: "https://github.com/rajet99/inverted-pendulum",
         prevLink: "../TVC/index.html",
+        nextLink: "../dual-ratio-transmission/index.html"
+    },
+    "dual-ratio-transmission": {
+        title: "Dual Ratio Passive-Shifting Transmission",
+        tag: "Mechanical Design & Powertrain",
+        localMarkdown: "README.md",
+        image: "Transmission.jpg",
+        folder: "dual-ratio-transmission",
+        prevLink: "../inverted-pendulum/index.html",
+        nextLink: "../line-following-robot/index.html"
+    },
+    "line-following-robot": {
+        title: "Autonomous Line-Following Robot",
+        tag: "Robotics & Embedded Systems",
+        localMarkdown: "README.md",
+        image: "ME129.jpg",
+        folder: "line-following-robot",
+        prevLink: "../dual-ratio-transmission/index.html",
+        nextLink: "../object-tracking-webcam/index.html"
+    },
+    "object-tracking-webcam": {
+        title: "Object Tracking Webcam System",
+        tag: "Computer Vision & Software",
+        localMarkdown: "README.md",
+        image: "IMG_0227.jpeg",
+        folder: "object-tracking-webcam",
+        prevLink: "../line-following-robot/index.html",
         nextLink: null
     }
 };
@@ -29,6 +56,21 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('Project configuration not found for: ' + projectId);
         return;
     }
+
+    // Helper to resolve project ID from relative navigation links
+    const getProjectIdFromLink = (link) => {
+        if (!link) return null;
+        for (const id in PROJECTS_DATABASE) {
+            const proj = PROJECTS_DATABASE[id];
+            if (link.includes(id) || 
+                (proj.repo && link.includes(proj.repo)) || 
+                (proj.folder && link.includes(proj.folder)) || 
+                (id === 'tvc-rocket' && link.includes('TVC'))) {
+                return id;
+            }
+        }
+        return null;
+    };
 
     // Check if running locally on file system or hosted on a web server
     const isLocal = window.location.protocol === 'file:';
@@ -151,7 +193,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (projConfig.repo) {
             fetchUrl = `https://raw.githubusercontent.com/rajet99/${projConfig.repo}/main/README.md`;
         } else if (projConfig.localMarkdown) {
-            fetchUrl = projConfig.localMarkdown;
+            const currentFolder = document.body.getAttribute('data-project-id');
+            if (projConfig.folder && projConfig.folder !== currentFolder) {
+                fetchUrl = `../${projConfig.folder}/${projConfig.localMarkdown}`;
+            } else {
+                fetchUrl = projConfig.localMarkdown;
+            }
         }
 
         if (!fetchUrl) return;
@@ -165,9 +212,28 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .then(markdown => {
                 // Convert markdown to HTML (stripping the main repository title if present to avoid duplicate headers)
-                let cleanMarkdown = markdown.replace(/^#\s+.*$/m, ''); // Strips the first h1
+                let cleanMarkdown = markdown.replace(/^#\s+.*/m, ''); // Strips the first h1
                 
-                const htmlContent = marked.parse(cleanMarkdown);
+                // SPLIT LOGIC
+                const firstHeadingIndex = cleanMarkdown.search(/^##?\s+/m);
+                
+                let descriptionMarkdown = "";
+                let detailsMarkdown = "";
+                
+                if (firstHeadingIndex !== -1) {
+                    descriptionMarkdown = cleanMarkdown.substring(0, firstHeadingIndex).trim();
+                    detailsMarkdown = cleanMarkdown.substring(firstHeadingIndex).trim();
+                } else {
+                    descriptionMarkdown = cleanMarkdown.trim();
+                    detailsMarkdown = "";
+                }
+                
+                const descContainer = containerElement.closest('.project-article').querySelector('.project-description-content');
+                if (descContainer) {
+                    descContainer.innerHTML = marked.parse(descriptionMarkdown);
+                }
+                
+                const htmlContent = marked.parse(detailsMarkdown);
                 containerElement.innerHTML = htmlContent;
 
                 // DYNAMIC SECTION HIDING:
@@ -230,7 +296,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 fallbackCard.className = 'local-video-fallback';
                                 fallbackCard.innerHTML = `
                                     <svg viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.108C19.53 3.54 12 3.54 12 3.54s-7.53 0-9.388.515a3.003 3.003 0 0 0-2.11 2.108C0 8.017 0 12 0 12s0 3.983.502 5.837a3.003 3.003 0 0 0 2.11 2.108C4.47 20.46 12 20.46 12 20.46s7.53 0 9.388-.515a3.003 3.003 0 0 0 2.11-2.108C24 15.983 24 12 24 12s0-3.983-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                                        <path d="M23.498 6.163a3.003 3.003 0 0 0-2.11-2.108C19.53 3.54 12 3.54 12 3.54s-7.53 0-9.388.515a3.003 3.003 0 0 0-2.11 2.108C0 8.017 0 12 0 12s0 3.983.502 5.837a3.003 3.003 0 0 2.11 2.108C4.47 20.46 12 20.46 12 20.46s7.53 0 9.388-.515a3.003 3.003 0 0 0 2.11-2.108C24 15.983 24 12 24 12s0-3.983-.502-5.837zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
                                     </svg>
                                     <span>Watch Demonstration on YouTube</span>
                                     <span class="local-video-note">(Video embedding is disabled on local drive files)</span>
@@ -271,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // DYNAMIC LATEX RENDERING (KaTeX auto-render):
                 if (typeof renderMathInElement === 'function') {
-                    renderMathInElement(containerElement, {
+                    renderMathInElement(document.body, {
                         delimiters: [
                             {left: '$$', right: '$$', display: true},
                             {left: '$', right: '$', display: false},
@@ -287,55 +353,77 @@ document.addEventListener('DOMContentLoaded', () => {
             })
             .catch(error => {
                 console.error(error);
-                containerElement.innerHTML = `
-                    <p style="color: #ef4444; font-weight: bold;">Could not load details.</p>
-                    <p style="color: var(--text-secondary); margin-top: 1rem;">Please visit the project page directly or check back later.</p>
-                `;
+                const hasExistingContent = containerElement.children.length > 0 && !containerElement.querySelector('.loading-spinner');
+                if (!hasExistingContent) {
+                    containerElement.innerHTML = `
+                        <p style="color: #ef4444; font-weight: bold;">Could not load details.</p>
+                        <p style="color: var(--text-secondary); margin-top: 1rem;">Please visit the project page directly or check back later.</p>
+                    `;
+                } else {
+                    if (typeof renderMathInElement === 'function') {
+                        renderMathInElement(document.body, {
+                            delimiters: [
+                                {left: '$$', right: '$$', display: true},
+                                {left: '$', right: '$', display: false},
+                                {left: '\\(', right: '\\)', display: false},
+                                {left: '\\[', right: '\\]', display: true}
+                            ],
+                            throwOnError: false
+                        });
+                    }
+                    appendThemeToLinks();
+                    if (callback) callback();
+                }
             });
     };
 
     // 7. Load Initial Project content on startup
     const initialReadme = document.getElementById('readme-content');
     if (initialReadme) {
-        initialReadme.innerHTML = '<div class="loading-spinner"></div><p style="text-align: center; color: var(--text-secondary);">Loading project details...</p>';
+        const hasExistingContent = initialReadme.children.length > 0 && !initialReadme.querySelector('.loading-spinner');
+        if (!hasExistingContent) {
+            initialReadme.innerHTML = '<div class="loading-spinner"></div><p style="text-align: center; color: var(--text-secondary);">Loading project details...</p>';
+        }
         loadProjectContent(activeProject, initialReadme, () => {
             // Generate and load Banner Image right after the Title once content is injected
-            const titleHeader = document.querySelector('.project-detail-title');
-            if (titleHeader && !document.querySelector('.project-detail-banner-container')) {
-                const bannerContainer = document.createElement('div');
-                bannerContainer.className = 'project-detail-banner-container';
-                
-                const bannerImg = document.createElement('img');
-                bannerImg.className = 'project-detail-banner';
-                bannerImg.alt = activeProject.title + " Thumbnail";
-                
-                bannerImg.onload = () => {
-                    bannerImg.classList.add('loaded');
-                };
+            if (activeProject.image && !document.querySelector('.project-detail-banner-container')) {
+                const titleHeader = document.querySelector('.project-detail-title');
+                if (titleHeader) {
+                    const bannerContainer = document.createElement('div');
+                    bannerContainer.className = 'project-detail-banner-container';
+                    
+                    const bannerImg = document.createElement('img');
+                    bannerImg.className = 'project-detail-banner';
+                    bannerImg.alt = activeProject.title + " Thumbnail";
+                    
+                    bannerImg.onload = () => {
+                        bannerImg.classList.add('loaded');
+                    };
 
-                const extensions = ['png', 'jpg', 'jpeg', 'gif'];
-                let currentExtIndex = 0;
+                    const extensions = ['png', 'jpg', 'jpeg', 'gif'];
+                    let currentExtIndex = 0;
 
-                const tryLoadBanner = () => {
-                    if (activeProject.repo) {
-                        bannerImg.src = `https://raw.githubusercontent.com/rajet99/${activeProject.repo}/main/${activeProject.image.replace(/\.[a-z0-9]+$/i, '.' + extensions[currentExtIndex])}`;
-                    } else if (activeProject.localMarkdown) {
-                        bannerImg.src = activeProject.image;
-                    }
-                };
+                    const tryLoadBanner = () => {
+                        if (activeProject.repo) {
+                            bannerImg.src = `https://raw.githubusercontent.com/rajet99/${activeProject.repo}/main/${activeProject.image.replace(/\.[a-z0-9]+$/i, '.' + extensions[currentExtIndex])}`;
+                        } else if (activeProject.localMarkdown) {
+                            bannerImg.src = activeProject.image;
+                        }
+                    };
 
-                bannerImg.onerror = () => {
-                    currentExtIndex++;
-                    if (currentExtIndex < extensions.length) {
-                        tryLoadBanner();
-                    } else {
-                        bannerContainer.style.display = 'none';
-                    }
-                };
+                    bannerImg.onerror = () => {
+                        currentExtIndex++;
+                        if (currentExtIndex < extensions.length) {
+                            tryLoadBanner();
+                        } else {
+                            bannerContainer.style.display = 'none';
+                        }
+                    };
 
-                bannerContainer.appendChild(bannerImg);
-                titleHeader.parentNode.insertBefore(bannerContainer, titleHeader.nextSibling);
-                tryLoadBanner();
+                    bannerContainer.appendChild(bannerImg);
+                    titleHeader.parentNode.insertBefore(bannerContainer, titleHeader.nextSibling);
+                    tryLoadBanner();
+                }
             }
         });
     }
@@ -348,15 +436,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log("Setting up arrows for activeProject:", activeProject);
 
-        // Left Arrow: Only rendered if prevLink is not null (Disables looping at the start)
+        // Left Arrow: Only rendered if prevLink is not null
         if (activeProject.prevLink) {
             const prevArrow = document.createElement('a');
             prevArrow.href = activeProject.prevLink;
             prevArrow.className = 'project-nav-arrow prev-project';
             prevArrow.setAttribute('aria-label', 'Previous Project');
             
-            const prevId = activeProject.prevLink.includes('TVC') ? 'tvc-rocket' : 'inverted-pendulum';
-            const prevTitle = PROJECTS_DATABASE[prevId] ? PROJECTS_DATABASE[prevId].title : 'Previous Project';
+            const prevId = getProjectIdFromLink(activeProject.prevLink);
+            const prevTitle = prevId && PROJECTS_DATABASE[prevId] ? PROJECTS_DATABASE[prevId].title : 'Previous Project';
 
             prevArrow.innerHTML = `
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -367,15 +455,15 @@ document.addEventListener('DOMContentLoaded', () => {
             document.body.appendChild(prevArrow);
         }
         
-        // Right Arrow: Only rendered if nextLink is not null (Disables looping at the end)
+        // Right Arrow: Only rendered if nextLink is not null
         if (activeProject.nextLink) {
             const nextArrow = document.createElement('a');
             nextArrow.href = activeProject.nextLink;
             nextArrow.className = 'project-nav-arrow next-project';
             nextArrow.setAttribute('aria-label', 'Next Project');
             
-            const nextId = activeProject.nextLink.includes('TVC') ? 'tvc-rocket' : 'inverted-pendulum';
-            const nextTitle = PROJECTS_DATABASE[nextId] ? PROJECTS_DATABASE[nextId].title : 'Next Project';
+            const nextId = getProjectIdFromLink(activeProject.nextLink);
+            const nextTitle = nextId && PROJECTS_DATABASE[nextId] ? PROJECTS_DATABASE[nextId].title : 'Next Project';
 
             nextArrow.innerHTML = `
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -399,133 +487,124 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log(`slideToProject: direction=${direction}, targetId=${targetId}, updateUrl=${updateUrl}`);
         isTransitioning = true;
 
-        // Create new article elements to hold sliding screen content
-        const nextArticle = document.createElement('article');
-        nextArticle.className = 'project-article';
-        
-        nextArticle.innerHTML = `
-            <span class="project-tag">${targetProj.tag}</span>
-            <h1 class="project-detail-title">
-                ${targetProj.title}
-                <a href="${targetProj.githubUrl}" target="_blank" rel="noopener noreferrer" class="title-github-link" aria-label="GitHub Repository">
-                    <svg viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.167 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.137 20.164 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
-                    </svg>
-                </a>
-            </h1>
-            <div class="project-detail-banner-container">
-                <img class="project-detail-banner" alt="${targetProj.title} Thumbnail">
-            </div>
-            <div class="project-detail-content" id="readme-content-${targetId}">
-                <div class="loading-spinner"></div>
-                <p style="text-align: center; color: var(--text-secondary);">Loading project details...</p>
-            </div>
-        `;
-
-        // Render banner image with fallback matching extensions
-        const nextBannerImg = nextArticle.querySelector('.project-detail-banner');
-        const nextBannerContainer = nextArticle.querySelector('.project-detail-banner-container');
-        nextBannerImg.onload = () => {
-            nextBannerImg.classList.add('loaded');
-        };
-        const extensions = ['png', 'jpg', 'jpeg', 'gif'];
-        let currentExtIndex = 0;
-        const tryLoadNextBanner = () => {
-            if (targetProj.repo) {
-                nextBannerImg.src = `https://raw.githubusercontent.com/rajet99/${targetProj.repo}/main/${targetProj.image.replace(/\.[a-z0-9]+$/i, '.' + extensions[currentExtIndex])}`;
-            } else if (targetProj.localMarkdown) {
-                nextBannerImg.src = targetProj.image;
-            }
-        };
-        nextBannerImg.onerror = () => {
-            currentExtIndex++;
-            if (currentExtIndex < extensions.length) {
-                tryLoadNextBanner();
-            } else {
-                nextBannerContainer.style.display = 'none';
-            }
-        };
-        tryLoadNextBanner();
-
-        // Start loading dynamic readme content
-        const nextContentContainer = nextArticle.querySelector('.project-detail-content');
-        loadProjectContent(targetProj, nextContentContainer);
-
-        const sliderWrapper = document.querySelector('.project-slider-wrapper');
-        const activeArticle = sliderWrapper.querySelector('.project-article');
-        
-        sliderWrapper.style.transition = 'none';
-
-        if (direction === 'next') {
-            // Slide left: Append next project to the right
-            sliderWrapper.appendChild(nextArticle);
-            sliderWrapper.offsetHeight; // force reflow
-            sliderWrapper.style.transition = 'transform var(--transition-speed) cubic-bezier(0.76, 0, 0.24, 1)';
-            sliderWrapper.style.transform = 'translateX(-100%)';
-        } else {
-            // Slide right: Prepend next project to the left
-            sliderWrapper.insertBefore(nextArticle, activeArticle);
-            sliderWrapper.style.transform = 'translateX(-100%)';
-            sliderWrapper.offsetHeight; // force reflow
-            sliderWrapper.style.transition = 'transform var(--transition-speed) cubic-bezier(0.76, 0, 0.24, 1)';
-            sliderWrapper.style.transform = 'translateX(0)';
+        // Fetch the target index.html to perfectly preserve all custom multi-card layouts (Notes, Backgrounds, etc)
+        let fetchUrl = direction === 'next' ? activeProject.nextLink : activeProject.prevLink;
+        // Strip any hash parameters for the fetch
+        if (fetchUrl) {
+            fetchUrl = fetchUrl.split('#')[0].split('?')[0];
         }
 
-        // Update URL bar path with history pushState (Only if hosted on server and NOT triggered by popstate)
-        if (updateUrl && !isLocal) {
-            const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-            const targetUrl = direction === 'next' ? activeProject.nextLink : activeProject.prevLink;
-            if (targetUrl) {
-                const hashIndex = targetUrl.indexOf('#');
-                let cleanUrl = hashIndex !== -1 ? targetUrl.substring(0, hashIndex) : targetUrl;
-                const hash = hashIndex !== -1 ? targetUrl.substring(hashIndex) : '';
+        fetch(fetchUrl)
+            .then(res => res.text())
+            .then(htmlText => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlText, 'text/html');
                 
-                const finalUrl = cleanUrl + `?theme=${currentTheme}` + hash;
-                history.pushState(null, '', finalUrl);
-            }
-        }
+                const fetchedArticle = doc.querySelector('.project-article');
+                if (!fetchedArticle) throw new Error('Could not find .project-article in target html');
 
-        // Update site tab title
-        document.title = `${targetProj.title} - Rajat Bidarkota`;
+                const nextArticle = document.createElement('article');
+                nextArticle.className = 'project-article';
+                nextArticle.innerHTML = fetchedArticle.innerHTML;
+                
+                // Fire any script-based initialization for the new content (like KaTeX, dynamic Markdown for GitHub repos)
+                // For GitHub repos, the readme-content might be empty, so we should call loadProjectContent if needed.
+                const nextContentContainer = nextArticle.querySelector('.project-detail-content#readme-content');
+                if (nextContentContainer) {
+                    // Check if the container has real content (ignoring HTML comments and whitespace)
+                    const hasRealContent = nextContentContainer.children.length > 0;
+                    if (!hasRealContent) {
+                        nextContentContainer.innerHTML = '<div class="loading-spinner"></div><p style="text-align: center; color: var(--text-secondary);">Loading project details...</p>';
+                        loadProjectContent(targetProj, nextContentContainer);
+                    }
+                }
 
-        // Safe cleanup timers to guarantee transition resetting
-        let transitionCleared = false;
-        
-        const onTransitionEnd = (e) => {
-            // Filter other transitioned properties (like banner opacity load or color transitions)
-            if (e && e.propertyName !== 'transform') return;
-            if (transitionCleared) return;
-            transitionCleared = true;
+                // If images haven't loaded yet, we can attach onload handlers to remove placeholder styles if needed
+                const nextBannerImg = nextArticle.querySelector('.project-detail-banner');
+                if (nextBannerImg) {
+                    if (nextBannerImg.complete) {
+                        nextBannerImg.classList.add('loaded');
+                    } else {
+                        nextBannerImg.onload = () => nextBannerImg.classList.add('loaded');
+                    }
+                }
 
-            console.log(`Transition completed for targetId=${targetId}`);
-            sliderWrapper.removeEventListener('transitionend', onTransitionEnd);
-            
-            // Remove old slide
-            sliderWrapper.removeChild(activeArticle);
-            
-            // Reset wrapper translation
-            sliderWrapper.style.transition = 'none';
-            sliderWrapper.style.transform = 'translateX(0)';
-            
-            // Set body state parameters
-            document.body.setAttribute('data-project-id', targetId);
-            activeProject = PROJECTS_DATABASE[targetId];
-            
-            // Re-setup navigation arrows
-            setupNavigationArrows();
-            
-            appendThemeToLinks();
-            isTransitioning = false;
-        };
+                const sliderWrapper = document.querySelector('.project-slider-wrapper');
+                const activeArticle = sliderWrapper.querySelector('.project-article');
+                
+                sliderWrapper.style.transition = 'none';
 
-        sliderWrapper.addEventListener('transitionend', onTransitionEnd);
-        // Fallback timer (450ms) to ensure it resets even if transition events are missed/optimized by the browser
-        setTimeout(() => {
-            if (!transitionCleared) {
-                console.log("onTransitionEnd fallback timer fired!");
-                onTransitionEnd(null);
-            }
-        }, 450);
+                if (direction === 'next') {
+                    sliderWrapper.appendChild(nextArticle);
+                    sliderWrapper.offsetHeight; // force reflow
+                    sliderWrapper.style.transition = 'transform var(--transition-speed) cubic-bezier(0.76, 0, 0.24, 1)';
+                    sliderWrapper.style.transform = 'translateX(-100%)';
+                } else {
+                    sliderWrapper.insertBefore(nextArticle, activeArticle);
+                    sliderWrapper.style.transform = 'translateX(-100%)';
+                    sliderWrapper.offsetHeight; // force reflow
+                    sliderWrapper.style.transition = 'transform var(--transition-speed) cubic-bezier(0.76, 0, 0.24, 1)';
+                    sliderWrapper.style.transform = 'translateX(0)';
+                }
+
+                // Update URL bar path with history pushState
+                if (updateUrl && !isLocal) {
+                    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+                    const targetUrl = direction === 'next' ? activeProject.nextLink : activeProject.prevLink;
+                    if (targetUrl) {
+                        const hashIndex = targetUrl.indexOf('#');
+                        let cleanUrl = hashIndex !== -1 ? targetUrl.substring(0, hashIndex) : targetUrl;
+                        const hash = hashIndex !== -1 ? targetUrl.substring(hashIndex) : '';
+                        
+                        const finalUrl = `${cleanUrl}?theme=${document.documentElement.getAttribute('data-theme') || 'light'}${hash}`;
+                        history.pushState(null, '', finalUrl);
+                    }
+                }
+
+                document.title = `${targetProj.title} - Rajat Bidarkota`;
+
+                let transitionCleared = false;
+                const onTransitionEnd = (e) => {
+                    if (e && e.propertyName !== 'transform') return;
+                    if (transitionCleared) return;
+                    transitionCleared = true;
+
+                    sliderWrapper.removeEventListener('transitionend', onTransitionEnd);
+                    sliderWrapper.removeChild(activeArticle);
+                    
+                    sliderWrapper.style.transition = 'none';
+                    sliderWrapper.style.transform = 'translateX(0)';
+                    
+                    document.body.setAttribute('data-project-id', targetId);
+                    activeProject = PROJECTS_DATABASE[targetId];
+                    
+                    setupNavigationArrows();
+                    appendThemeToLinks();
+                    isTransitioning = false;
+                    
+                    // Re-render math if KaTeX is present
+                    if (window.renderMathInElement) {
+                        renderMathInElement(nextArticle, {
+                            delimiters: [
+                                {left: '', right: '', display: true},
+                                {left: '$', right: '$', display: false}
+                            ],
+                            throwOnError: false
+                        });
+                    }
+                };
+
+                sliderWrapper.addEventListener('transitionend', onTransitionEnd);
+                setTimeout(() => {
+                    if (!transitionCleared) {
+                        onTransitionEnd(null);
+                    }
+                }, 450);
+            })
+            .catch(err => {
+                console.error("Failed to load project HTML:", err);
+                isTransitioning = false;
+            });
     };
 
     // Intercept click listener on navigation arrows to trigger slide animations
@@ -533,9 +612,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const arrow = e.target.closest('.project-nav-arrow');
         if (!arrow) return;
         
-        // If previewing locally via file://, let browser native navigation handle it to avoid pushState security block
         if (isLocal) {
-            console.log("Local filesystem detected. Letting browser native link navigation run.");
             return;
         }
         
@@ -547,32 +624,29 @@ document.addEventListener('DOMContentLoaded', () => {
         const currentId = document.body.getAttribute('data-project-id');
         const currentProj = PROJECTS_DATABASE[currentId];
         
-        console.log(`Arrow clicked: isNext=${isNext}, currentId=${currentId}`);
         if (currentProj) {
             const targetLink = isNext ? currentProj.nextLink : currentProj.prevLink;
-            // Stop click actions if there's no navigation link (leftmost / rightmost project anchor)
-            if (!targetLink) {
-                console.log("No target link available, click ignored.");
-                return;
-            }
+            if (!targetLink) return;
             
-            const targetId = targetLink.includes('TVC') ? 'tvc-rocket' : 'inverted-pendulum';
-            slideToProject(direction, targetId);
+            const targetId = getProjectIdFromLink(targetLink);
+            if (targetId) {
+                slideToProject(direction, targetId);
+            }
         }
     });
 
     // Handle browser back/forward buttons during project details slide sessions
     window.addEventListener('popstate', () => {
-        if (isLocal) return; // Ignore on local file protocol
+        if (isLocal) return;
 
         const path = window.location.pathname;
-        const targetId = path.includes('TVC') ? 'tvc-rocket' : 'inverted-pendulum';
+        const targetId = getProjectIdFromLink(path);
         const currentId = document.body.getAttribute('data-project-id');
         
-        console.log(`popstate triggered: targetId=${targetId}, currentId=${currentId}`);
-        if (targetId !== currentId && PROJECTS_DATABASE[targetId]) {
-            const direction = (targetId === 'tvc-rocket') ? 'prev' : 'next';
-            slideToProject(direction, targetId, false); // Pass false to prevent history push recursion
+        if (targetId && targetId !== currentId && PROJECTS_DATABASE[targetId]) {
+            const keys = Object.keys(PROJECTS_DATABASE);
+            const direction = keys.indexOf(targetId) < keys.indexOf(currentId) ? 'prev' : 'next';
+            slideToProject(direction, targetId, false);
         }
     });
 

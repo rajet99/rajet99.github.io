@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Object Tracking Webcam System Project Details - Rajat Bidarkota">
+    <title>Object Tracking Webcam System - Rajat Bidarkota</title>
+    <link rel="icon" type="image/svg+xml" href="../../logo.svg">
+    <link rel="stylesheet" href="../../style.css">
+    
+    <!-- Shared Project Engine Dependencies -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
+    <!-- KaTeX LaTeX Renderer -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/katex/dist/katex.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex/dist/contrib/auto-render.min.js"></script>
+    
+    <script>
+        (function() {
+            let savedTheme = null;
+            try {
+                savedTheme = localStorage.getItem('theme');
+            } catch (e) {
+                console.warn('localStorage is blocked in this environment.');
+            }
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlTheme = urlParams.get('theme');
+            
+            const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            let initialTheme = urlTheme || savedTheme || (systemPrefersDark ? 'dark' : 'light');
+            if (initialTheme !== 'dark' && initialTheme !== 'light') {
+                initialTheme = systemPrefersDark ? 'dark' : 'light';
+            }
+            document.documentElement.setAttribute('data-theme', initialTheme);
+        })();
+    </script>
+    
+    <!-- Shared Project Engine -->
+    <script src="../project-detail.js" defer></script>
+</head>
+<body data-project-id="object-tracking-webcam">
+    <!-- Navigation Header -->
+    <header class="navbar header-large" id="navbar">
+        <div class="nav-container">
+            <a href="../../index.html#home" class="logo-link" id="logo-nav">
+                <img src="../../logo.svg" alt="Rajat Bidarkota Logo" class="logo-img">
+                <span class="site-title">Rajat Bidarkota</span>
+            </a>
+            <nav class="nav-menu">
+                <a href="../../index.html#home" class="nav-link">HOME</a>
+                <a href="../../index.html#projects" class="nav-link active">PROJECTS</a>
+                <a href="../../index.html#about" class="nav-link">ABOUT</a>
+            </nav>
+            <div class="theme-toggle-container">
+                <button id="theme-toggle" aria-label="Toggle Theme" class="theme-btn">
+                    <span class="theme-icon"></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Project Detail Content -->
+    <main class="project-detail-main">
+        <div class="section-container">
+            <a href="../../index.html#projects" class="back-link">&larr; Back to Projects</a>
+            <article class="project-article">
+                <div class="project-cards-layout">
+                    <!-- Header Card -->
+                    <div class="project-header-card">
+                        <span class="project-tag">Computer Vision &amp; Software</span>
+                        <h1 class="project-detail-title">
+                            Object Tracking Webcam System
+                        </h1>
+                        <div class="project-detail-banner-container">
+                            <img class="project-detail-banner loaded" src="IMG_0227.jpeg" alt="Object Tracking Webcam System Thumbnail">
+                        </div>
+                        <div class="project-description-section">
+                            <div class="project-description-content" id="project-description-content">
+                                <p>A real-time vision-based tracking system that combines computer vision, closed-loop positional control, and stepper motor actuation to autonomously track colored racquetballs. The system processes live webcam frames, estimates the target's position relative to the camera, and generates smooth motor trajectories to continuously center the target.</p>
+                            </div>
+                            <div class="project-notes-content">
+                                <strong>Note:</strong> <span class="editable-note">Project notes and highlights will go here.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Details Card -->
+                    <div class="project-details-card">
+                        <div class="project-detail-content" id="readme-content">
+                    <h2>Overview</h2>
+                    <p>The robot uses a webcam as its primary sensor alongside stepper motors to control the camera and tracking platform. The entire system operates as a closed-loop pipeline with the following sequence:</p>
+                    <p><strong>Camera Input &rarr; Image Segmentation &rarr; Object Detection &rarr; Centroid Estimation &rarr; Positional Error &rarr; Motor Control</strong></p>
+                    <p>In order to maximize efficiency, the software architecture separates the system into three concurrent stages:</p>
+                    <ul>
+                        <li><strong>Image Acquisition:</strong> Continuously captures frames from the webcam.</li>
+                        <li><strong>Vision Processing:</strong> Segments target objects and estimates their position using geometric features.</li>
+                        <li><strong>Motor Control:</strong> Converts the estimated image-space error into smooth stepper motor trajectories.</li>
+                    </ul>
+                    <p>This parallel task separation allows the robot to continue acquiring and processing new visual information at the exact same time that motor commands are being executed.</p>
+
+                    <h2>Demonstrations</h2>
+                    <div class="project-demo-videos">
+                        <video controls preload="metadata">
+                            <source src="IMG_0182.mp4" type="video/mp4">
+                            <a href="IMG_0182.mp4">Watch demonstration video 1</a>
+                        </video>
+                        <video controls preload="metadata">
+                            <source src="IMG_0181.mp4" type="video/mp4">
+                            <a href="IMG_0181.mp4">Watch demonstration video 2</a>
+                        </video>
+                    </div>
+
+                    <h2>Object Detection</h2>
+                    <p>Each camera frame is processed using OpenCV to isolate objects based on color. During this process, the image is converted into a binary mask, in which pixels within the target color range are retained while the remaining image is heavily suppressed. Erosian and dilation are applied to denoise the mask before object detection.</p>
+                    <p>The filtered mask is then analyzed to extract candidate objects, based on the following criteria:</p>
+                    <ul>
+                        <li><strong>Color:</strong> Candidate pixels must fall within the target color range.</li>
+                        <li><strong>Size:</strong> Small regions and isolated noise are immediately discarded.</li>
+                        <li><strong>Aspect Ratio:</strong> Candidates with strongly non-circular bounding boxes are rejected.</li>
+                        <li><strong>Circularity:</strong> Candidate contours are compared against an equivalent circular geometry (see circular centroid estimation) to identify objects that more closely match the expected target shape.</li>
+                    </ul>
+                    <p>This combination of color and geometric filtering makes the detector much more robust for racquetball detection than on pure color segmentation alone.</p>
+
+                    <h2>Centroid Estimation</h2>
+                    <p>After successfully identifying a target contour, the system proceeds to estimate its center in image space. There are several approaches that can be used to accomplish this, heavily depending on the geometry and segmentation quality:</p>
+                    <ul>
+                        <li><strong>Area Center:</strong> Computes the average of all segmented pixel coordinates.</li>
+                        <li><strong>Bounding Box Center:</strong> Uses the center of the contour's axis-aligned bounding box.</li>
+                        <li><strong>Circular Center:</strong> Fits or estimates a circle around the detected object and uses its center.</li>
+                        <li><strong>Elliptical Center:</strong> Fits an ellipse to the contour and uses its geometric center.</li>
+                    </ul>
+                    <p>For this system, the circular center method was selected due to the tracking targets being spherical. This provides a center estimate that is far less sensitive to small irregularities in the segmented contour than directly averaging individual pixels. While elliptical centers may seem better on paper, lighting conditions often caused parts of the ball to be obscured from tracking, leading to irregular shapes that may be misinterpreted as ellipses highly offset from the true object center. The estimated center is then compared against the center of the camera's field of view to determine the target's relative positional error. As a result, this error becomes the primary feedback signal for the motor-control system.</p>
+
+                    <h2>Closed-Loop Tracking</h2>
+                    <p>The center of the camera effectively serves as the desired target position. When the detected object moves away from this central point, the resulting image-space error is immediately converted into motor commands that rotate the camera and tracking platform directly toward the target.</p>
+                    <p>The control loop therefore follows a continuous cycle:</p>
+                    <p><strong>Target Motion &rarr; Image Displacement &rarr; Position Error &rarr; Motor Command &rarr; Camera Motion &rarr; Updated Image</strong></p>
+                    <p>Because the system continuously recomputes the target position from new camera frames, the robot is able to respond dynamically as the target moves rather than relying on a predetermined rigid motion path.</p>
+
+                    <h2>Trajectory Generation</h2>
+                    <p>Directly translating each detected position into an instantaneous motor command can often produce abrupt motion and severe oscillation. This is especially noticeable when the detected centroid shifts slightly between consecutive frames due to segmentation noise or small variations in the object's apparent shape.</p>
+                    <p>Motor commands are passed through spline interpolation to generate smooth trajectories between successive target positions, reducing jitter caused by noisy centroid estimates.</p>
+                    <p>For two successive target positions, a cubic spline can be used to interpolate the commanded position, velocity, and acceleration continuously:</p>
+
+                    <p>
+                    $$
+                    \begin{aligned}
+                    \mathbf{p}(t) ={}& (2t^3 - 3t^2 + 1)\mathbf{p}_0 \\
+                                      &+ (t^3 - 2t^2 + t)\mathbf{v}_0 \\
+                                      &+ (-2t^3 + 3t^2)\mathbf{p}_1 \\
+                                      &+ (t^3 - t^2)\mathbf{v}_1,
+                    \qquad 0 \leq t \leq 1
+                    \end{aligned}
+                    $$
+                    </p>
+
+                    <p>Here, $\mathbf{p}_0$ and $\mathbf{p}_1$ are the initial and final positions, $\mathbf{v}_0$ and $\mathbf{v}_1$ are endpoint velocities, and $t$ ranges from $0$ to $1$ over the trajectory.</p>
+
+                    <h2>Multithreading</h2>
+                    <p>Image acquisition, vision processing, and motor control are all implemented as concurrent processes within a multithreaded software architecture.</p>
+                    <p>Specifically, the camera thread continuously acquires the latest frame while the vision-processing thread performs segmentation and object localization. At the same time, the motor-control thread independently consumes the latest positional error and generates the corresponding motor trajectory. This effectively prevents image processing or motor execution from unnecessarily blocking camera acquisition, thus allowing the system to maintain continuous visual feedback during motor movement.</p>
+
+                    <h2>Mechanical Hardware</h2>
+                    <p>Custom 3D-printed L-brackets were fabricated to properly mount the stepper motors and webcam to the tracking assembly. These mounts provide rigid alignment between the camera and the motorized axes while keeping the overall mechanism highly compact and efficient.</p>
+                </div>
+                    </div>
+                </div>
+            </article>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-container">
+            <p>&copy; 2026 Rajat Bidarkota. All rights reserved.</p>
+            <div class="footer-links">
+                <a href="mailto:rbidarko@caltech.edu">Email</a>
+                <span class="footer-separator">&bull;</span>
+                <a href="https://github.com/rajet99" target="_blank" rel="noopener noreferrer">GitHub</a>
+                <span class="footer-separator">&bull;</span>
+                <a href="https://www.linkedin.com/in/rajat-bidarkota/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>

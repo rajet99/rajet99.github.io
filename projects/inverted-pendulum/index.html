@@ -66,17 +66,52 @@
         <div class="section-container">
             <a href="../../index.html#projects" class="back-link">&larr; Back to Projects</a>
             <article class="project-article">
-                <span class="project-tag">Control Theory &amp; Embedded</span>
-                <h1 class="project-detail-title">
-                    Linear Inverted Pendulum
+                <div class="project-cards-layout">
+                    <!-- Header Card -->
+                    <div class="project-header-card">
+                        <span class="project-tag">Control Theory &amp; Embedded</span>
+                        <h1 class="project-detail-title">
+                            Linear Inverted Pendulum
                     <a href="https://github.com/rajet99/inverted-pendulum" target="_blank" rel="noopener noreferrer" class="title-github-link" aria-label="GitHub Repository">
                         <svg viewBox="0 0 24 24" fill="currentColor">
                             <path d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.167 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.603-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.579.688.481C19.137 20.164 22 16.418 22 12c0-5.523-4.477-10-10-10z"/>
                         </svg>
                     </a>
-                </h1>
-                <div class="project-detail-content" id="readme-content">
+                        </h1>
+
+                        <div class="project-description-section">
+                            <div class="project-description-content" id="project-description-content">
+                                
+                            </div>
+                            <div class="project-notes-content">
+                                <strong>Note:</strong> <span class="editable-note">While the repository associated with this project is focused purely on the simulation aspect of an inverted pendulum, this system was effectively deployed on real embedded hardware for a mechatronics design class project (for ME13, Design and Fabrication) in a team of 6. These simulations served as the basis for the deployed control system. See the <a href="#background">Background</a> section below for more details about the implementation and hardware project.</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Details Card -->
+                    <div class="project-details-card">
+                        <div class="project-detail-content" id="readme-content">
                     <!-- GitHub README markdown gets dynamically compiled and rendered here -->
+                </div>
+                    </div>
+
+                    <!-- Background & Process Card -->
+                    <div class="project-details-card">
+                        <div class="project-detail-content">
+                            <h2 id="background">Background</h2>
+                            <p>I initially used MATLAB and Simulink to model and verify the dynamic system, since its block-based design made it easy to prototype dynamics and control systems such as the ones in this project. We had a little over a week to do this mechatronics project as part of our Design and Fabrication course at Caltech. Our team was originally planning to build a double inverted pendulum using a Teensy 4.0 and a BLDC motor with SimpleFOC. FOC, or field-oriented-control, would have been ideal since it provides direct force control, matching our control algorithms. However, the Teensy was very fragile and likely got bricked (even without overvolting or some other clear failure), while the BLDC motor failed to move as expected, likely due to hardware issues with the SimpleFOC driver board clone we had purchased. When the replacement Teensy was delayed, we were left with less than a week for the project and pivoted to a single pendulum with an ESP32 and stepper motor.</p>
+
+<p>We took inspiration from 3D printers like the Ender 3 and built the linear actuator from aluminum extrusions with a belt-driven gantry and roller bearings, providing a simple structure that was easy to assemble and mount. We also replaced the BLDC setup with a NEMA17 stepper motor and A4988 driver. Because the stepper could not directly receive the force commands from the controller, we developed a software system to convert these commands into position and velocity commands while enforcing the motor's velocity and acceleration limits (which we determined through rigorous testing). We added limit switches for position calibration and experimented with different belt pulley sizes to determine the appropriate tradeoff between linear force and velocity, ultimately selecting the largest pulley since velocity ended up being the primary constraint.</p>
+
+<p>For tuning the swing-up controller, the gain initially had to be reduced significantly since the motor's velocity and acceleration limitations prevented it from following more aggressive commands. The balance controller presented a separate challenge: the quantized encoder output made direct estimation of angular velocity too noisy for reliable control. Implementing a Kalman filter significantly improved the state estimate and was necessary for the balancing controller to work effectively:</p>
+
+<p>$$ \hat{x}_k = \hat{x}_{k}^{-} + K_k (z_k - H \hat{x}_{k}^{-}) $$</p>
+
+<p>Transferring the pendulum from the swing-up controller to the LQR balance controller presented the final challenge. Although the LQR gains were derived in MATLAB, they required substantial hand-tuning on the physical system. The cart initially could not move quickly enough to catch the pendulum at the top of its swing and would sometimes move in the wrong direction when the pendulum was still approaching the upright position. Increasing the angular velocity gain and reducing the angular position gain improved the handoff substantially, while adding angular velocity slowdown logic further improved the transition.</p>
+
+<p>With more time, we could have further optimized the LQR gains and handoff behavior, but the compressed timeline limited the tuning we could perform. Despite this, the project required us to iterate from an initially unsuccessful hardware configuration to a functional single-pendulum system, giving us significant experience integrating modeling, hardware, state estimation, and control on a physical system.</p>                        </div>
+                    </div>
                 </div>
             </article>
         </div>
@@ -87,6 +122,8 @@
         <div class="footer-container">
             <p>&copy; 2026 Rajat Bidarkota. All rights reserved.</p>
             <div class="footer-links">
+                <a href="mailto:rbidarko@caltech.edu">Email</a>
+                <span class="footer-separator">&bull;</span>
                 <a href="https://github.com/rajet99" target="_blank" rel="noopener noreferrer">GitHub</a>
                 <span class="footer-separator">&bull;</span>
                 <a href="https://www.linkedin.com/in/rajat-bidarkota/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
