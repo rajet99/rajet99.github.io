@@ -1126,6 +1126,29 @@ html, body {
     font-size: 0.9rem;
 }
 
+.project-demo-videos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem;
+    align-items: start;
+    margin: 0.5rem 0 1.5rem;
+}
+
+.project-demo-videos video {
+    width: 100%;
+    max-width: 100%;
+    aspect-ratio: 9 / 16;
+    display: block;
+    border-radius: 8px;
+    background-color: #05070a;
+}
+
+@media (max-width: 768px) {
+    .project-demo-videos {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* Floating Project Navigation Arrows */
 .project-nav-arrow {
     position: fixed;
