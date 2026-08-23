@@ -2,6 +2,10 @@
 
 A mechanical powertrain project focused on designing and fabricating a two-speed transmission for a bicycle wheel capable of shifting gear ratios automatically without electronic actuators or complex microcontroller supervision. The system leverages one-way roller clutches to shift between a 9:1 high-torque ratio and a 4:1 high-speed ratio simply by reversing the direction of the input motor. This was developed as part of the Transmission Design Competition for ME13 (Design and Fabrication) at Caltech, and our team of 6 ended up winning the competition, setting a new record.
 
+## Demonstration
+
+[Watch the transmission demonstration on YouTube](https://youtu.be/QBFlbIeEo6Q)
+
 ## Mechanical Principles & Architecture
 
 Standard multi-speed transmissions rely on solenoid actuators or active clutches to switch gears. This design eliminates active shifting components by integrating one-way roller clutches into the parallel gear trains. A roller clutch uses spring-loaded rollers between an inner and outer race. The rollers wedge between the races when torque is applied in the locking direction, transmitting power; in the opposite direction, they release and allow the shaft to overrun, acting like a bearing. Each gear train therefore transmits torque in only one motor direction while the other train freewheels with minimal frictional loss.
