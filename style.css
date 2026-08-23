@@ -971,6 +971,13 @@ html, body {
     line-height: 1.8;
 }
 
+/* Description text (under title, above notes) matches detail body text size */
+.project-description-content {
+    font-size: 1.15rem;
+    color: var(--text-secondary);
+    line-height: 1.8;
+}
+
 .project-detail-content p {
     margin-bottom: 1.5rem;
 }
@@ -991,6 +998,18 @@ html, body {
 .project-detail-content a:hover {
     text-decoration: underline;
 }
+
+/* Same-page anchor links (#...) — blue and italicized */
+.project-article a[href^="#"] {
+    color: var(--gradient-start);
+    font-style: italic;
+    text-decoration: none;
+}
+
+.project-article a[href^="#"]:hover {
+    text-decoration: underline;
+}
+
 
 /* Social Links under Home buttons */
 .hero-socials {
