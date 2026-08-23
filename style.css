@@ -332,45 +332,48 @@ html, body {
     z-index: 1;
 }
 
-/* Primary Button (Explore Projects) - Sliding Gradient Mask (Left -> Right) */
+/* Primary Button (Explore Projects) */
 .btn-primary {
-    background: transparent; /* Transparent parent to let layered pseudoelements handle backgrounds */
-    color: var(--button-text);
-    border: 1px solid transparent;
+    --button-bg-opacity: 0.75;
+    --grad-1: color-mix(in srgb, var(--gradient-start) calc(var(--button-bg-opacity) * 100%), transparent);
+    --grad-2: color-mix(in srgb, var(--gradient-end) calc(var(--button-bg-opacity) * 100%), transparent);
+    
+    background: linear-gradient(90deg, var(--grad-1) -70%, var(--grad-2) 170%) border-box;
+    color: var(--text-primary);
+    border: 2px solid transparent; /* Simple constant mathematical pixel width */
+    border-radius: 10px; /* Concentric outer radius: 8px inner + 2px border */
+    margin: 0;
     position: relative;
     z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: border-radius var(--transition-speed) ease, border-width var(--transition-speed) ease, margin var(--transition-speed) ease, --button-bg-opacity var(--transition-speed) ease, transform var(--transition-speed) ease, color var(--transition-speed) ease;
 }
 
-/* Solid Default Background */
+/* Inner Solid Mask */
 .btn-primary::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background-color: var(--button-primary);
-    border-radius: 8px;
-    z-index: -2;
-}
-
-/* Stretched Gradient Overlay with Clip Path sliding mask */
-.btn-primary::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: linear-gradient(90deg, var(--gradient-start) -70%, var(--gradient-end) 170%);
-    border-radius: 8px;
+    top: 0; left: 0; right: 0; bottom: 0; /* Perfectly aligns with padding box */
+    background-color: var(--bg-primary); /* Fully solid default to hide inner fill */
+    border-radius: 8px; /* Match About Me interior radius */
     z-index: -1;
-    clip-path: inset(0 100% 0 0); /* Start fully clipped from the right (0 width visible) */
-    transition: clip-path var(--transition-speed) ease-in-out; /* Match about me speed */
+    transition: background-color var(--transition-speed) ease;
 }
 
-.btn-primary:hover::after {
-    clip-path: inset(0 0 0 0); /* Reveal full width from left to right on hover */
+.btn-primary:hover::before {
+    /* Reveals gradient fill inside the button on hover */
+    background-color: color-mix(in srgb, var(--bg-primary) 70%, transparent);
 }
 
 .btn-primary:hover {
-    color: #080c14; /* Legible dark font against gradient */
-    transform: scale(1.05); /* Enlarge on hover without translation */
-    transition: transform var(--transition-speed) ease-in-out, color var(--transition-speed) ease-in-out;
+    --button-bg-opacity: 1.0;
+    color: var(--text-primary) !important;
+    border-width: 4px;
+    border-radius: 12px; /* Concentric outer radius: 8px inner + 4px border */
+    margin: -2px;
+    transform: scale(1.05);
 }
 
 /* Secondary Button (About Me) - Grow Gradient Border Outwards on Hover (No Fill) */
