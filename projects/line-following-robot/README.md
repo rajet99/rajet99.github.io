@@ -1,6 +1,6 @@
 # Autonomous Line-Following & Directed Graph Exploration Robot
 
-An autonomous differential-drive robot based on a Raspberry Pi 4 that combines closed-loop line tracking with continuous state estimation, topological SLAM (simultaneous localization and mapping) over a grid-based map, shortest-path planning via Dijkstra's algorithm, and directed frontier exploration using ultrasonic obstacle avoidance and NFC localization. It was developed with a partner as part of ME129, a Caltech robotics lab course.
+An autonomous differential-drive robot based on a Raspberry Pi 4 that combines closed-loop line tracking with continuous state estimation, topological SLAM (simultaneous localization and mapping) over a grid-based map, shortest-path planning via Dijkstra's algorithm, and directed frontier exploration using ultrasonic obstacle avoidance and NFC localization. Developed with a partner as part of ME129, a Caltech mobile robotics lab course.
 
 ## Overview
 
@@ -33,7 +33,7 @@ State transitions rely on an asymmetric hysteresis band (responding differently 
 
 When the robot loses the line entirely, it references its lateral bias state:
 
-$$\text{raw_{side}} = \begin{cases}  0.0 & \text{Centered: } (0, 1, 0) \\ +0.5 & \text{Slightly Left: } (0, 1, 1) \\ +1.0 & \text{Far Left: } (0, 0, 1) \\ -0.5 & \text{Slightly Right: } (1, 1, 0) \\ -1.0 & \text{Far Right: } (1, 0, 0) \\ \text{level}_{\text{previous}} & \text{Off the Line: } (0, 0, 0) \end{cases}$$
+$$\text{raw}_{\text{side}} = \begin{cases}  0.0 & \text{Centered: } (0, 1, 0) \\ +0.5 & \text{Slightly Left: } (0, 1, 1) \\ +1.0 & \text{Far Left: } (0, 0, 1) \\ -0.5 & \text{Slightly Right: } (1, 1, 0) \\ -1.0 & \text{Far Right: } (1, 0, 0) \\ \text{level}_{\text{previous}} & \text{Off the Line: } (0, 0, 0) \end{cases}$$
 
 If knocked off the line ((0, 0, 0)), the estimator keeps its integrated directional history instead of resetting to neutral. This directional history triggers a corrective spin (left for rightward bias, right for leftward bias) until the line is recaptured. For normal tracking, the system uses a turn-and-hook policy, relying on small turns for minor tracking errors and single-wheel hooks for larger deviations.
 

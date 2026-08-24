@@ -318,7 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        fetch(fetchUrl)
+        fetch(fetchUrl, { cache: 'no-cache' })
             .then(response => {
                 if (!response.ok) {
                     throw new Error('Failed to load project details');
@@ -586,7 +586,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Fetch the target index.html to perfectly preserve all custom multi-card layouts (Notes, Backgrounds, etc)
         const fetchUrl = new URL(`../../projects/${targetProj.page}`, window.location.href).href;
 
-        fetch(fetchUrl)
+        fetch(fetchUrl, { cache: 'no-cache' })
             .then(res => {
                 if (!res.ok) throw new Error(`Failed to load project page (${res.status})`);
                 return res.text();
