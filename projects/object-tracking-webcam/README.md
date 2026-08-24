@@ -17,15 +17,10 @@ This parallel task separation allows the robot to continue acquiring and process
 
 ## Demonstrations
 
-<video controls preload="metadata" width="100%">
-    <source src="IMG_0182.mp4" type="video/mp4">
-    <a href="IMG_0182.mp4">Watch demonstration video 1</a>
-</video>
-
-<video controls preload="metadata" width="100%">
-    <source src="IMG_0181.mp4" type="video/mp4">
-    <a href="IMG_0181.mp4">Watch demonstration video 2</a>
-</video>
+<div class="project-demo-videos">
+    <p><a href="https://youtube.com/shorts/2UmPfR1mL_Y">Watch demonstration video 1</a></p>
+    <p><a href="https://youtube.com/shorts/gNEnLHN7Rmc">Watch demonstration video 2</a></p>
+</div>
 
 ## Object Detection
 Each camera frame is processed using OpenCV to isolate objects based on color. During this process, the image is converted into a binary mask, in which pixels within the target color range are retained while the remaining image is heavily suppressed. Erosion and dilation are applied to denoise the mask before object detection.

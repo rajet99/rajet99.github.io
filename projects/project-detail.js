@@ -278,10 +278,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     } 
                     // Handle YouTube links
-                    else if (url.includes('youtu.be/') || url.includes('youtube.com/watch')) {
+                    else if (url.includes('youtu.be/') || url.includes('youtube.com/watch') || url.includes('youtube.com/shorts/')) {
                         let videoId = '';
                         if (url.includes('youtu.be/')) {
                             videoId = url.split('youtu.be/')[1].split(/[?#]/)[0];
+                        } else if (url.includes('youtube.com/shorts/')) {
+                            videoId = url.split('youtube.com/shorts/')[1].split(/[?#]/)[0];
                         } else if (url.includes('v=')) {
                             videoId = url.split('v=')[1].split('&')[0];
                         }

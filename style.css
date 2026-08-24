@@ -1169,6 +1169,14 @@ html, body {
     background-color: #05070a;
 }
 
+.project-demo-videos p {
+    margin: 0;
+}
+
+.project-demo-videos p > div {
+    width: 100%;
+}
+
 @media (max-width: 768px) {
     .project-demo-videos {
         grid-template-columns: 1fr;
