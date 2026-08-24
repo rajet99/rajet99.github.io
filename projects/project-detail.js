@@ -497,10 +497,13 @@ document.addEventListener('DOMContentLoaded', () => {
     let isTransitioning = false;
     let pendingNavigation = null;
     let transitionTimeout = null;
+    let transitionTargetId = null;
     
     const slideToProject = (direction, targetId, updateUrl = true) => {
         if (isTransitioning) {
-            pendingNavigation = { direction, targetId, updateUrl };
+            if (targetId !== transitionTargetId) {
+                pendingNavigation = { direction, targetId, updateUrl };
+            }
             return;
         }
         const targetProj = PROJECTS_DATABASE[targetId];
@@ -508,6 +511,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         console.log(`slideToProject: direction=${direction}, targetId=${targetId}, updateUrl=${updateUrl}`);
         isTransitioning = true;
+        transitionTargetId = targetId;
 
         // Fetch the target index.html to perfectly preserve all custom multi-card layouts (Notes, Backgrounds, etc)
         const fetchUrl = new URL(`../../projects/${targetProj.page}`, window.location.href).href;
@@ -597,6 +601,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     setupNavigationArrows();
                     appendThemeToLinks();
                     isTransitioning = false;
+                    transitionTargetId = null;
                     
                     // Re-render math if KaTeX is present
                     if (window.renderMathInElement) {
@@ -626,6 +631,7 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(err => {
                 console.error("Failed to load project HTML:", err);
                 isTransitioning = false;
+                transitionTargetId = null;
                 if (pendingNavigation) {
                     const nextNavigation = pendingNavigation;
                     pendingNavigation = null;
