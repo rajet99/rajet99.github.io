@@ -192,6 +192,110 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     setupArticleSlider();
 
+    // 6a. Helper to rewrite relative image/media paths against a base URL so assets
+    // resolve correctly when content is inserted before the address bar updates
+    const absolutizeMediaSources = (rootElement, baseUrl) => {
+        rootElement.querySelectorAll('img[src], video[src], source[src]').forEach(el => {
+            const src = el.getAttribute('src');
+            if (src && !src.startsWith('data:') && !/^(https?:)?\/\//i.test(src) && !src.startsWith('/')) {
+                try {
+                    el.setAttribute('src', new URL(src, baseUrl).href);
+                } catch (e) {
+                    console.warn('Failed to resolve media path: ' + src, e);
+                }
+            }
+        });
+    };
+
+    // Helper to resolve relative image paths inside parsed markdown HTML strings
+    const resolveMarkdownImagePaths = (htmlString, baseUrl) => {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = htmlString;
+        absolutizeMediaSources(tempDiv, baseUrl);
+        return tempDiv.innerHTML;
+    };
+
+    // Helper to compute the correct asset base URL for a given project configuration
+    const getProjectAssetBase = (projConfig) => {
+        if (projConfig.repo) {
+            return `https://raw.githubusercontent.com/rajet99/${projConfig.repo}/main/`;
+        }
+        const currentFolder = document.body.getAttribute('data-project-id');
+        if (projConfig.folder && projConfig.folder !== currentFolder) {
+            return new URL(`../${projConfig.folder}/`, window.location.href).href;
+        }
+        return new URL('./', window.location.href).href;
+    };
+
+    // Helper to inject the project banner image after the title header.
+    // Used both on initial page load and after slide transitions (scoped via scopeEl).
+    const injectProjectBanner = (projConfig, scopeEl) => {
+        if (!projConfig.image || scopeEl.querySelector('.project-detail-banner-container')) {
+            return;
+        }
+        const titleHeader = scopeEl.querySelector('.project-detail-title');
+        if (!titleHeader) return;
+
+        const bannerContainer = document.createElement('div');
+        bannerContainer.className = 'project-detail-banner-container';
+
+        const bannerImg = document.createElement('img');
+        bannerImg.className = 'project-detail-banner';
+        bannerImg.alt = projConfig.title + " Thumbnail";
+
+        bannerImg.onload = () => {
+            bannerImg.classList.add('loaded');
+        };
+
+        const extensions = ['png', 'jpg', 'jpeg', 'gif'];
+        let currentExtIndex = 0;
+
+        const tryLoadBanner = () => {
+            if (projConfig.repo) {
+                bannerImg.src = `https://raw.githubusercontent.com/rajet99/${projConfig.repo}/main/${projConfig.image.replace(/\.[a-z0-9]+$/i, '.' + extensions[currentExtIndex])}`;
+            } else if (projConfig.localMarkdown) {
+                bannerImg.src = new URL(projConfig.image, getProjectAssetBase(projConfig)).href;
+            }
+        };
+
+        bannerImg.onerror = () => {
+            currentExtIndex++;
+            if (currentExtIndex < extensions.length) {
+                tryLoadBanner();
+            } else {
+                bannerContainer.style.display = 'none';
+            }
+        };
+
+        bannerContainer.appendChild(bannerImg);
+        titleHeader.parentNode.insertBefore(bannerContainer, titleHeader.nextSibling);
+        tryLoadBanner();
+    };
+
+    // Helpers to shield LaTeX math from the markdown parser. marked mangles math
+    // (e.g. converts \\ line breaks to \ and pairs _ as emphasis), so segments are
+    // swapped for placeholders before parsing and restored into the HTML afterwards.
+    const protectMathSegments = (markdownText) => {
+        const store = [];
+        const protectedText = markdownText.replace(
+            /\$\$[\s\S]+?\$\$|(?<![\\$\w])\$(?!\s)((?:\\.|[^$\\\n])+?)(?<!\s)\$/g,
+            (match) => {
+                const token = `@@MATH${store.length}@@`;
+                store.push(match);
+                return token;
+            }
+        );
+        return { protectedText, store };
+    };
+
+    const restoreMathSegments = (htmlString, store) => {
+        return htmlString.replace(/@@MATH(\d+)@@/g, (_, index) => {
+            const math = store[Number(index)];
+            if (math === undefined) return '';
+            return math.replace(/[&<>]/g, (c) => ({'&': '&amp;', '<': '&lt;', '>': '&gt;'}[c]));
+        });
+    };
+
     // 6. Helper function to fetch and render dynamic markdown file content (either GitHub or Local Markdown files)
     let contentRequestId = 0;
     const loadProjectContent = (projConfig, containerElement, callback, ownerArticle = containerElement.closest('.project-article')) => {
@@ -240,12 +344,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     detailsMarkdown = "";
                 }
                 
+                const assetBase = getProjectAssetBase(projConfig);
+                const descMath = protectMathSegments(descriptionMarkdown);
+                const detailsMath = protectMathSegments(detailsMarkdown);
+
                 const descContainer = containerElement.closest('.project-article').querySelector('.project-description-content');
                 if (descContainer && canUpdate()) {
-                    descContainer.innerHTML = marked.parse(descriptionMarkdown);
+                    descContainer.innerHTML = resolveMarkdownImagePaths(restoreMathSegments(marked.parse(descMath.protectedText), descMath.store), assetBase);
                 }
-                
-                const htmlContent = marked.parse(detailsMarkdown);
+
+                const htmlContent = resolveMarkdownImagePaths(restoreMathSegments(marked.parse(detailsMath.protectedText), detailsMath.store), assetBase);
                 if (!canUpdate()) return;
                 containerElement.innerHTML = htmlContent;
 
@@ -403,45 +511,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         loadProjectContent(activeProject, initialReadme, () => {
             // Generate and load Banner Image right after the Title once content is injected
-            if (activeProject.image && !document.querySelector('.project-detail-banner-container')) {
-                const titleHeader = document.querySelector('.project-detail-title');
-                if (titleHeader) {
-                    const bannerContainer = document.createElement('div');
-                    bannerContainer.className = 'project-detail-banner-container';
-                    
-                    const bannerImg = document.createElement('img');
-                    bannerImg.className = 'project-detail-banner';
-                    bannerImg.alt = activeProject.title + " Thumbnail";
-                    
-                    bannerImg.onload = () => {
-                        bannerImg.classList.add('loaded');
-                    };
-
-                    const extensions = ['png', 'jpg', 'jpeg', 'gif'];
-                    let currentExtIndex = 0;
-
-                    const tryLoadBanner = () => {
-                        if (activeProject.repo) {
-                            bannerImg.src = `https://raw.githubusercontent.com/rajet99/${activeProject.repo}/main/${activeProject.image.replace(/\.[a-z0-9]+$/i, '.' + extensions[currentExtIndex])}`;
-                        } else if (activeProject.localMarkdown) {
-                            bannerImg.src = activeProject.image;
-                        }
-                    };
-
-                    bannerImg.onerror = () => {
-                        currentExtIndex++;
-                        if (currentExtIndex < extensions.length) {
-                            tryLoadBanner();
-                        } else {
-                            bannerContainer.style.display = 'none';
-                        }
-                    };
-
-                    bannerContainer.appendChild(bannerImg);
-                    titleHeader.parentNode.insertBefore(bannerContainer, titleHeader.nextSibling);
-                    tryLoadBanner();
-                }
-            }
+            injectProjectBanner(activeProject, document);
         });
     }
 
@@ -531,7 +601,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const nextArticle = document.createElement('article');
                 nextArticle.className = 'project-article';
                 nextArticle.innerHTML = fetchedArticle.innerHTML;
-                
+
+                // Rewrite relative image/media paths against the target page URL BEFORE
+                // insertion, since the address bar still points at the previous project
+                absolutizeMediaSources(nextArticle, fetchUrl);
+
                 const nextContentContainer = nextArticle.querySelector('.project-detail-content#readme-content');
 
                 // If images haven't loaded yet, we can attach onload handlers to remove placeholder styles if needed
@@ -569,6 +643,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     loadProjectContent(targetProj, nextContentContainer, null, nextArticle);
                 }
 
+                // Inject banner thumbnail for projects whose banners are loaded dynamically (repo-based)
+                injectProjectBanner(targetProj, nextArticle);
+
                 document.title = `${targetProj.title} - Rajat Bidarkota`;
 
                 let transitionCleared = false;
@@ -605,13 +682,17 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     // Re-render math if KaTeX is present
                     if (window.renderMathInElement) {
-                        renderMathInElement(nextArticle, {
-                            delimiters: [
-                                {left: '', right: '', display: true},
-                                {left: '$', right: '$', display: false}
-                            ],
-                            throwOnError: false
-                        });
+                        try {
+                            renderMathInElement(nextArticle, {
+                                delimiters: [
+                                    {left: '$$', right: '$$', display: true},
+                                    {left: '$', right: '$', display: false}
+                                ],
+                                throwOnError: false
+                            });
+                        } catch (mathError) {
+                            console.warn('KaTeX rendering failed during transition:', mathError);
+                        }
                     }
 
                     if (pendingNavigation) {
