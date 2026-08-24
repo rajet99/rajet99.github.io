@@ -16,6 +16,8 @@ The sensor array relies on three infrared phototransistors mounted slightly abov
 
 [Watch line-following demonstration on YouTube](https://youtu.be/iHh2Qe0sKe0)
 
+[Watch complex line following behavior on Youtube](https://youtu.be/sorNZZaBAyg)
+
 ### Dynamic Filtering and Hysteresis
 
 Internal confidence levels update during each fast control loop:
