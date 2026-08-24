@@ -931,6 +931,12 @@ html, body {
         grid-template-columns: 1fr !important;
         gap: 2.5rem !important;
     }
+
+    /* Match the reduced main padding for full-bleed sliding project articles */
+    .project-slider-wrapper .project-article {
+        padding-left: 1.5rem !important;
+        padding-right: 1.5rem !important;
+    }
 }
 
 /* Project Detail Page Styles */
@@ -1352,12 +1358,15 @@ html, body {
     margin-top: 0.25rem;
 }
 
-/* Horizontal sliding animation container for project details pages */
+/* Horizontal sliding animation container for project details pages.
+   Breaks out of .section-container so slides traverse the full page width
+   (same effect as the home page tab slider); articles keep their own
+   max-width and stay centered while sliding. */
 .project-slider-viewport {
-    width: 100%;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
     overflow: hidden;
     position: relative;
-    border-radius: 12px;
 }
 
 .project-slider-wrapper {
@@ -1370,6 +1379,15 @@ html, body {
 .project-article {
     width: 100%;
     flex-shrink: 0;
+}
+
+/* Each sliding article must occupy exactly one full-viewport slot; side padding
+   reproduces the centered card column that max-width provided before the
+   viewport became full-bleed */
+.project-slider-wrapper .project-article {
+    max-width: none;
+    padding-left: max(2rem, calc(50vw - var(--max-width) / 2));
+    padding-right: max(2rem, calc(50vw - var(--max-width) / 2));
 }
 
 .slider-page.collapsed {

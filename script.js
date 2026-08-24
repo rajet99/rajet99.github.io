@@ -106,6 +106,69 @@ document.addEventListener('DOMContentLoaded', () => {
     // Check if hosted or running locally under file://
     const isLocalFile = window.location.protocol === 'file:';
 
+    // DISABLED: Per-tab scroll memory feature (in-memory only; intentionally resets on page refresh).
+    // Uncomment the blocks marked "SCROLL MEMORY" throughout this file to re-enable.
+    /* SCROLL MEMORY
+    const tabScrollMemory = { home: 0, projects: 0, about: 0 };
+    let currentTab = null;
+
+    // Take control of scroll positioning so native restoration doesn't fight the per-tab memory
+    if ('scrollRestoration' in window.history) {
+        window.history.scrollRestoration = 'manual';
+    }
+
+    // Cubic-bezier easing solver so the vertical scroll can match the slider's
+    // CSS transition curve (cubic-bezier(0.76, 0, 0.24, 1))
+    const cubicBezier = (x1, y1, x2, y2) => {
+        const A = (a, b) => 1 - 3 * b + 3 * a;
+        const B = (a, b) => 3 * b - 6 * a;
+        const C = (a) => 3 * a;
+        const calc = (t, a, b) => ((A(a, b) * t + B(a, b)) * t + C(a)) * t;
+        const slope = (t, a, b) => 3 * A(a, b) * t * t + 2 * B(a, b) * t + C(a);
+        const solveX = (x) => {
+            let t = x;
+            for (let i = 0; i < 8; i++) {
+                const err = calc(t, x1, x2) - x;
+                if (Math.abs(err) < 1e-6) return t;
+                const d = slope(t, x1, x2);
+                if (Math.abs(d) < 1e-7) break;
+                t -= err / d;
+            }
+            return t;
+        };
+        return (x) => (x <= 0 ? 0 : x >= 1 ? 1 : calc(solveX(x), y1, y2));
+    };
+
+    const SLIDE_EASING = cubicBezier(0.76, 0, 0.24, 1);
+
+    // Must match .sections-slider transition duration in style.css (0.4s)
+    const SLIDE_DURATION_MS = 400;
+
+    // Animates the window scroll so its motion stays in sync with the horizontal slide
+    let scrollAnimationFrame = null;
+    const animateScrollTo = (targetY) => {
+        if (scrollAnimationFrame !== null) {
+            cancelAnimationFrame(scrollAnimationFrame);
+            scrollAnimationFrame = null;
+        }
+
+        const startY = window.scrollY;
+        const deltaY = targetY - startY;
+        if (Math.abs(deltaY) < 1) {
+            window.scrollTo(0, targetY);
+            return;
+        }
+
+        const startTime = performance.now();
+        const step = (now) => {
+            const progress = Math.min((now - startTime) / SLIDE_DURATION_MS, 1);
+            window.scrollTo(0, startY + deltaY * SLIDE_EASING(progress));
+            scrollAnimationFrame = progress < 1 ? requestAnimationFrame(step) : null;
+        };
+        scrollAnimationFrame = requestAnimationFrame(step);
+    };
+    SCROLL MEMORY */
+
     // Slide to target page
     let slideTimer = null;
     const slideToPage = (pageId) => {
@@ -138,6 +201,11 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Scroll user back to top of container smoothly
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            /* SCROLL MEMORY
+            // Restore remembered scroll depth for this tab, synced with the horizontal slide
+            animateScrollTo(tabScrollMemory[pageId] || 0);
+            currentTab = pageId;
+            SCROLL MEMORY */
         }
     };
 
@@ -169,6 +237,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Main navigation router function
     const navigateTo = (pageId, updateUrl = true) => {
         if (!pages.includes(pageId)) return;
+
+        /* SCROLL MEMORY
+        // Save the outgoing tab's scroll depth before leaving it
+        if (currentTab && currentTab !== pageId) {
+            tabScrollMemory[currentTab] = window.scrollY;
+        }
+        SCROLL MEMORY */
 
         slideToPage(pageId);
 
