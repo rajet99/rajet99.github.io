@@ -426,9 +426,16 @@ document.addEventListener('DOMContentLoaded', () => {
                                 `;
                                 elementToInsert = fallbackCard;
                             } else {
+                                // YouTube Shorts are vertical (9:16); everything else uses standard 16:9
+                                const isVerticalShort = url.includes('youtube.com/shorts/');
                                 const iframeContainer = document.createElement('div');
                                 iframeContainer.style.position = 'relative';
-                                iframeContainer.style.paddingBottom = '56.25%';
+                                iframeContainer.style.paddingBottom = isVerticalShort ? '177.78%' : '56.25%';
+                                if (isVerticalShort) {
+                                    iframeContainer.style.maxWidth = '360px';
+                                    iframeContainer.style.marginLeft = 'auto';
+                                    iframeContainer.style.marginRight = 'auto';
+                                }
                                 iframeContainer.style.height = '0';
                                 iframeContainer.style.overflow = 'hidden';
                                 iframeContainer.style.borderRadius = '8px';
