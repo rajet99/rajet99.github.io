@@ -6,6 +6,7 @@ const PROJECTS_DATABASE = {
         repo: "tvc-experimentation",
         image: "rocket.png",
         githubUrl: "https://github.com/rajet99/tvc-experimentation",
+        page: "TVC/index.html",
         prevLink: null,
         nextLink: "../inverted-pendulum/index.html"
     },
@@ -15,6 +16,7 @@ const PROJECTS_DATABASE = {
         repo: "inverted-pendulum",
         image: "balance.png",
         githubUrl: "https://github.com/rajet99/inverted-pendulum",
+        page: "inverted-pendulum/index.html",
         prevLink: "../TVC/index.html",
         nextLink: "../dual-ratio-transmission/index.html"
     },
@@ -24,6 +26,7 @@ const PROJECTS_DATABASE = {
         localMarkdown: "README.md",
         image: "Transmission.jpg",
         folder: "dual-ratio-transmission",
+        page: "dual-ratio-transmission/index.html",
         prevLink: "../inverted-pendulum/index.html",
         nextLink: "../line-following-robot/index.html"
     },
@@ -33,6 +36,7 @@ const PROJECTS_DATABASE = {
         localMarkdown: "README.md",
         image: "ME129.jpg",
         folder: "line-following-robot",
+        page: "line-following-robot/index.html",
         prevLink: "../dual-ratio-transmission/index.html",
         nextLink: "../object-tracking-webcam/index.html"
     },
@@ -42,6 +46,7 @@ const PROJECTS_DATABASE = {
         localMarkdown: "README.md",
         image: "IMG_0227.jpeg",
         folder: "object-tracking-webcam",
+        page: "object-tracking-webcam/index.html",
         prevLink: "../line-following-robot/index.html",
         nextLink: null
     }
@@ -188,7 +193,10 @@ document.addEventListener('DOMContentLoaded', () => {
     setupArticleSlider();
 
     // 6. Helper function to fetch and render dynamic markdown file content (either GitHub or Local Markdown files)
-    const loadProjectContent = (projConfig, containerElement, callback) => {
+    let contentRequestId = 0;
+    const loadProjectContent = (projConfig, containerElement, callback, ownerArticle = containerElement.closest('.project-article')) => {
+        const requestId = ++contentRequestId;
+        const canUpdate = () => requestId === contentRequestId && ownerArticle && containerElement.closest('.project-article') === ownerArticle && ownerArticle.isConnected;
         let fetchUrl = '';
         if (projConfig.repo) {
             fetchUrl = `https://raw.githubusercontent.com/rajet99/${projConfig.repo}/main/README.md`;
@@ -201,7 +209,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        if (!fetchUrl) return;
+        if (!fetchUrl) {
+            if (canUpdate()) callback?.(new Error('No project content source configured'));
+            return;
+        }
 
         fetch(fetchUrl)
             .then(response => {
@@ -211,6 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return response.text();
             })
             .then(markdown => {
+                if (!canUpdate()) return;
                 // Convert markdown to HTML (stripping the main repository title if present to avoid duplicate headers)
                 let cleanMarkdown = markdown.replace(/^#\s+.*/m, ''); // Strips the first h1
                 
@@ -229,11 +241,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 
                 const descContainer = containerElement.closest('.project-article').querySelector('.project-description-content');
-                if (descContainer) {
+                if (descContainer && canUpdate()) {
                     descContainer.innerHTML = marked.parse(descriptionMarkdown);
                 }
                 
                 const htmlContent = marked.parse(detailsMarkdown);
+                if (!canUpdate()) return;
                 containerElement.innerHTML = htmlContent;
 
                 // DYNAMIC SECTION HIDING:
@@ -350,10 +363,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
                 
+                if (!canUpdate()) return;
                 appendThemeToLinks();
                 if (callback) callback();
             })
             .catch(error => {
+                if (!canUpdate()) return;
                 console.error(error);
                 const hasExistingContent = containerElement.children.length > 0 && !containerElement.querySelector('.loading-spinner');
                 if (!hasExistingContent) {
@@ -374,7 +389,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         });
                     }
                     appendThemeToLinks();
-                    if (callback) callback();
+                    if (callback) callback(error);
                 }
             });
     };
@@ -480,9 +495,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 9. Horizontal Slide transition between different projects
     let isTransitioning = false;
+    let pendingNavigation = null;
+    let transitionTimeout = null;
     
     const slideToProject = (direction, targetId, updateUrl = true) => {
-        if (isTransitioning) return;
+        if (isTransitioning) {
+            pendingNavigation = { direction, targetId, updateUrl };
+            return;
+        }
         const targetProj = PROJECTS_DATABASE[targetId];
         if (!targetProj) return;
 
@@ -490,14 +510,13 @@ document.addEventListener('DOMContentLoaded', () => {
         isTransitioning = true;
 
         // Fetch the target index.html to perfectly preserve all custom multi-card layouts (Notes, Backgrounds, etc)
-        let fetchUrl = direction === 'next' ? activeProject.nextLink : activeProject.prevLink;
-        // Strip any hash parameters for the fetch
-        if (fetchUrl) {
-            fetchUrl = fetchUrl.split('#')[0].split('?')[0];
-        }
+        const fetchUrl = new URL(`../../projects/${targetProj.page}`, window.location.href).href;
 
         fetch(fetchUrl)
-            .then(res => res.text())
+            .then(res => {
+                if (!res.ok) throw new Error(`Failed to load project page (${res.status})`);
+                return res.text();
+            })
             .then(htmlText => {
                 const parser = new DOMParser();
                 const doc = parser.parseFromString(htmlText, 'text/html');
@@ -509,17 +528,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 nextArticle.className = 'project-article';
                 nextArticle.innerHTML = fetchedArticle.innerHTML;
                 
-                // Fire any script-based initialization for the new content (like KaTeX, dynamic Markdown for GitHub repos)
-                // For GitHub repos, the readme-content might be empty, so we should call loadProjectContent if needed.
                 const nextContentContainer = nextArticle.querySelector('.project-detail-content#readme-content');
-                if (nextContentContainer) {
-                    // Check if the container has real content (ignoring HTML comments and whitespace)
-                    const hasRealContent = nextContentContainer.children.length > 0;
-                    if (!hasRealContent) {
-                        nextContentContainer.innerHTML = '<div class="loading-spinner"></div><p style="text-align: center; color: var(--text-secondary);">Loading project details...</p>';
-                        loadProjectContent(targetProj, nextContentContainer);
-                    }
-                }
 
                 // If images haven't loaded yet, we can attach onload handlers to remove placeholder styles if needed
                 const nextBannerImg = nextArticle.querySelector('.project-detail-banner');
@@ -549,18 +558,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     sliderWrapper.style.transform = 'translateX(0)';
                 }
 
-                // Update URL bar path with history pushState
-                if (updateUrl && !isLocal) {
-                    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-                    const targetUrl = direction === 'next' ? activeProject.nextLink : activeProject.prevLink;
-                    if (targetUrl) {
-                        const hashIndex = targetUrl.indexOf('#');
-                        let cleanUrl = hashIndex !== -1 ? targetUrl.substring(0, hashIndex) : targetUrl;
-                        const hash = hashIndex !== -1 ? targetUrl.substring(hashIndex) : '';
-                        
-                        const finalUrl = `${cleanUrl}?theme=${document.documentElement.getAttribute('data-theme') || 'light'}${hash}`;
-                        history.pushState(null, '', finalUrl);
+                if (nextContentContainer) {
+                    if (nextContentContainer.children.length === 0) {
+                        nextContentContainer.innerHTML = '<div class="loading-spinner"></div><p style="text-align: center; color: var(--text-secondary);">Loading project details...</p>';
                     }
+                    loadProjectContent(targetProj, nextContentContainer, null, nextArticle);
                 }
 
                 document.title = `${targetProj.title} - Rajat Bidarkota`;
@@ -572,13 +574,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     transitionCleared = true;
 
                     sliderWrapper.removeEventListener('transitionend', onTransitionEnd);
-                    sliderWrapper.removeChild(activeArticle);
+                    if (activeArticle.parentNode === sliderWrapper) {
+                        sliderWrapper.removeChild(activeArticle);
+                    }
+                    if (transitionTimeout) {
+                        clearTimeout(transitionTimeout);
+                        transitionTimeout = null;
+                    }
                     
                     sliderWrapper.style.transition = 'none';
                     sliderWrapper.style.transform = 'translateX(0)';
                     
                     document.body.setAttribute('data-project-id', targetId);
                     activeProject = PROJECTS_DATABASE[targetId];
+
+                    if (updateUrl && !isLocal) {
+                        const finalUrl = new URL(`../../projects/${targetProj.page}`, window.location.href);
+                        finalUrl.searchParams.set('theme', document.documentElement.getAttribute('data-theme') || 'light');
+                        history.pushState(null, '', finalUrl.href);
+                    }
                     
                     setupNavigationArrows();
                     appendThemeToLinks();
@@ -594,10 +608,16 @@ document.addEventListener('DOMContentLoaded', () => {
                             throwOnError: false
                         });
                     }
+
+                    if (pendingNavigation) {
+                        const nextNavigation = pendingNavigation;
+                        pendingNavigation = null;
+                        slideToProject(nextNavigation.direction, nextNavigation.targetId, nextNavigation.updateUrl);
+                    }
                 };
 
                 sliderWrapper.addEventListener('transitionend', onTransitionEnd);
-                setTimeout(() => {
+                transitionTimeout = setTimeout(() => {
                     if (!transitionCleared) {
                         onTransitionEnd(null);
                     }
@@ -606,6 +626,11 @@ document.addEventListener('DOMContentLoaded', () => {
             .catch(err => {
                 console.error("Failed to load project HTML:", err);
                 isTransitioning = false;
+                if (pendingNavigation) {
+                    const nextNavigation = pendingNavigation;
+                    pendingNavigation = null;
+                    slideToProject(nextNavigation.direction, nextNavigation.targetId, nextNavigation.updateUrl);
+                }
             });
     };
 
