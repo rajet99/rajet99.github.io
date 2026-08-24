@@ -12,7 +12,7 @@ const PROJECTS_DATABASE = {
     },
     "inverted-pendulum": {
         title: "Linear Inverted Pendulum",
-        tag: "Control Theory & Embedded",
+        tag: "Control Theory & Embedded Systems",
         repo: "inverted-pendulum",
         image: "balance.png",
         githubUrl: "https://github.com/rajet99/inverted-pendulum",
@@ -22,7 +22,7 @@ const PROJECTS_DATABASE = {
     },
     "dual-ratio-transmission": {
         title: "Dual Ratio Passive-Shifting Transmission",
-        tag: "Mechanical Design & Powertrain",
+        tag: "Mechanical Design & Fabrication",
         localMarkdown: "README.md",
         image: "Transmission.jpg",
         folder: "dual-ratio-transmission",
@@ -42,7 +42,7 @@ const PROJECTS_DATABASE = {
     },
     "object-tracking-webcam": {
         title: "Object Tracking Webcam System",
-        tag: "Computer Vision & Software",
+        tag: "Computer Vision & Control",
         localMarkdown: "README.md",
         image: "IMG_0227.jpeg",
         folder: "object-tracking-webcam",
