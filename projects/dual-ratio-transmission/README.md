@@ -1,6 +1,6 @@
 # Dual-Ratio Passive Shifting Transmission
 
-A mechanical powertrain project focused on designing and fabricating a two-speed transmission for a bicycle wheel capable of shifting gear ratios automatically without electronic actuators or complex microcontroller supervision. The system leverages one-way roller clutches to shift between a 9:1 high-torque ratio and a 4:1 high-speed ratio simply by reversing the direction of the input motor. This was developed as part of the Transmission Design Competition for ME13 (Design and Fabrication) at Caltech, and our team of 6 ended up winning the competition, setting a new record.
+A mechanical powertrain project focused on designing and fabricating a two-speed transmission for a bicycle wheel capable of shifting gear ratios automatically without electronic actuators or complex microcontroller supervision. The system leverages one-way roller clutches to shift between a 9:1 high-torque ratio and a 4:1 high-speed ratio simply by reversing the direction of the input motor. This was developed as part of the Transmission Design Competition for ME14 (Design and Fabrication) at Caltech, and our team of 6 ended up winning the competition, setting a new record.
 
 ## Demonstration
 

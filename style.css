@@ -13,6 +13,7 @@
 
 /* Base Theme Setup & CSS Variables */
 :root {
+    --site-scale: 1.05; /* Global website default scale multiplier (1.0 = 100%, 1.1 = 110%) */
     --font-primary: 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif;
     
     /* Light Theme (Clean Slate - High Contrast Edition) */
@@ -26,6 +27,11 @@
     /* Shared Brand Colors & Gradients */
     --gradient-start: #4d99e8;
     --gradient-end: #59ff90;
+    --logo-glow-base-blur: 6px; /* Base glow radius for 105px logo */
+    --logo-glow-brightness: 1; /* Brightness multiplier for glow */
+    --logo-glow-saturate: 4.7; /* Color saturation multiplier for glow */
+    --logo-glow-alpha: 0.95; /* Alpha / Opacity of the logo hover glow (0.0 transparent to 1.0 opaque) */
+    --logo-vertical-offset: -5px; /* Optical vertical centering shift (negative = shift up, positive = shift down) */
     --button-primary: #05070a;
     --button-primary-hover: #1e293b;
     --button-text: #ffffff;
@@ -57,6 +63,7 @@
 }
 
 html, body {
+    zoom: var(--site-scale, 1.1);
     width: 100%;
     overflow-x: hidden;
     font-family: var(--font-primary);
@@ -109,6 +116,38 @@ html, body {
     text-decoration: none;
     color: var(--text-primary);
     gap: 1.25rem;
+    position: relative;
+}
+
+/* True-color gradient glow layer behind the logo (blurs the actual SVG colors) */
+.logo-link::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: var(--logo-vertical-offset);
+    bottom: calc(-1 * var(--logo-vertical-offset));
+    margin: auto 0;
+    width: 105px;
+    height: 105px;
+    background: url("logo.svg") no-repeat center / contain;
+    filter: blur(var(--logo-glow-base-blur)) brightness(var(--logo-glow-brightness)) saturate(var(--logo-glow-saturate));
+    opacity: 0;
+    pointer-events: none;
+    transform-origin: center center;
+    transform: scale(1);
+    transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease-in-out, filter var(--transition-speed) ease;
+    z-index: 0;
+}
+
+.header-large .logo-link::before,
+.navbar:hover .logo-link::before {
+    transform: scale(1.28);
+    filter: blur(var(--logo-glow-base-blur)) brightness(var(--logo-glow-brightness)) saturate(var(--logo-glow-saturate));
+}
+
+.navbar:not(.header-large):not(:hover) .logo-link::before {
+    transform: scale(0.78);
+    filter: blur(calc(var(--logo-glow-base-blur) * (0.78 / 1.28))) brightness(var(--logo-glow-brightness)) saturate(var(--logo-glow-saturate));
 }
 
 /* Sizing logo at top vs scrolled state (High-Performance GPU-accelerated scaling) */
@@ -117,60 +156,94 @@ html, body {
     display: block;
     height: 105px;
     width: 105px;
+    margin-top: var(--logo-vertical-offset);
+    position: relative;
+    z-index: 1;
     transform-origin: center center;
-    transition: transform var(--transition-speed) ease-in-out, filter var(--transition-speed) ease;
+    transition: transform var(--transition-speed) ease-in-out;
 }
 
 .header-large .logo-img,
 .navbar:hover .logo-img {
-    transform: scale(1);
+    transform: scale(1.28);
 }
 
 .navbar:not(.header-large):not(:hover) .logo-img {
-    transform: scale(0.667); /* Scales down to exactly 70px */
+    transform: scale(0.78); /* Scales down to ~82px */
 }
 
-/* Transparent-specific boundary glow (drop-shadow instead of box-shadow) */
+/* Logo hover state */
 .logo-img:hover {
-    transform: scale(1.08);
-    /* CUSTOMIZATION NOTE: Adjust colors and blur strength below to customize the logo hover glow */
-    filter: drop-shadow(0 0 5px rgba(30, 90, 160, 0.3)) drop-shadow(0 0 5px rgba(20, 160, 70, 0.3));
-    transition: transform var(--transition-speed) ease, filter var(--transition-speed) ease;
+    transform: scale(1.38);
 }
 
-/* Position logo in the left margin gutter on wide viewports (Disconnected from name spacing) */
-@media (min-width: 1300px) {
+.logo-img:hover ~ .logo-link::before,
+.logo-link:hover::before {
+    opacity: var(--logo-glow-alpha);
+    transform: scale(1.42);
+}
+
+/* Anchor logo to the left corner on wide viewports (until viewport gets too narrow) */
+@media (min-width: 1350px) {
     .logo-link {
-        position: relative;
-        padding-left: 0;
+        position: static;
+    }
+    
+    .logo-link::before {
+        left: 2.5rem;
+        top: var(--logo-vertical-offset);
+        bottom: calc(-1 * var(--logo-vertical-offset));
+        margin: auto 0;
     }
     
     .logo-img {
         position: absolute;
-        left: -155px; /* Shifted more to the left */
-        top: 50%;
-        transform: translateY(-50%) scale(1);
+        left: 2.5rem;
+        top: var(--logo-vertical-offset);
+        bottom: calc(-1 * var(--logo-vertical-offset));
+        margin: auto 0;
+        margin-top: 0;
+        transform: scale(1.28);
     }
 
     /* Fixed vertical center translation + scale on hover, prevents shifting */
     .logo-img:hover {
-        transform: translateY(-50%) scale(1.08) !important;
+        transform: scale(1.38) !important;
     }
     
-    /* Ensure the vertical centering properties and scales apply smoothly across states */
+    .logo-img:hover ~ .logo-link::before,
+    .logo-link:hover::before {
+        opacity: var(--logo-glow-alpha) !important;
+        transform: scale(1.42) !important;
+    }
+    
+    /* Ensure scales apply smoothly across states while snapping instantly on zoom/resize */
     .header-large .logo-img,
     .navbar:hover .logo-img {
         position: absolute;
-        left: -155px;
-        top: 50%;
-        transform: translateY(-50%) scale(1) !important;
+        left: 2.5rem;
+        top: var(--logo-vertical-offset);
+        bottom: calc(-1 * var(--logo-vertical-offset));
+        margin: auto 0;
+        transform: scale(1.28) !important;
+    }
+    
+    .header-large .logo-link::before,
+    .navbar:hover .logo-link::before {
+        transform: scale(1.28) !important;
     }
     
     .navbar:not(.header-large):not(:hover) .logo-img {
         position: absolute;
-        left: -155px;
-        top: 50%;
-        transform: translateY(-50%) scale(0.667) !important;
+        left: 2.5rem;
+        top: var(--logo-vertical-offset);
+        bottom: calc(-1 * var(--logo-vertical-offset));
+        margin: auto 0;
+        transform: scale(0.78) !important;
+    }
+
+    .navbar:not(.header-large):not(:hover) .logo-link::before {
+        transform: scale(0.78) !important;
     }
 }
 
@@ -283,8 +356,9 @@ html, body {
 }
 
 .slider-page {
-    width: 33.333%; /* 1/3 of the 300% width parent container */
-    flex-shrink: 0;
+    width: calc(100% / 3); /* Exactly 1/3 of the 300% width parent container */
+    flex: 0 0 calc(100% / 3);
+    max-width: calc(100% / 3);
     min-height: calc(100vh - 100px);
     padding: 4rem 2rem;
     overflow-y: auto;
@@ -430,7 +504,6 @@ html, body {
 
 /* Projects section layout inside slider */
 .projects-section {
-    width: 100vw;
 }
 
 .section-container {
@@ -666,7 +739,6 @@ html, body {
 
 /* About section layout inside slider */
 .about-section {
-    width: 100vw;
 }
 
 .about-grid {
@@ -868,7 +940,29 @@ html, body {
         position: static !important; /* Reset absolute margins */
         height: 48px !important;
         width: 48px !important;
+        margin-top: calc(var(--logo-vertical-offset) * (48 / 105)) !important;
         transform: none !important;
+    }
+
+    /* Scale glow backdrop layer for mobile navbar */
+    .logo-link::before,
+    .header-large .logo-link::before,
+    .navbar:hover .logo-link::before,
+    .navbar:not(.header-large):not(:hover) .logo-link::before {
+        width: 48px !important;
+        height: 48px !important;
+        left: 0 !important;
+        top: calc(var(--logo-vertical-offset) * (48 / 105)) !important;
+        bottom: calc(-1 * var(--logo-vertical-offset) * (48 / 105)) !important;
+        margin: auto 0 !important;
+        transform: scale(1) !important;
+        filter: blur(calc(var(--logo-glow-base-blur) * (48 / 105))) brightness(var(--logo-glow-brightness)) saturate(var(--logo-glow-saturate)) !important;
+    }
+
+    .logo-img:hover ~ .logo-link::before,
+    .logo-link:hover::before {
+        opacity: var(--logo-glow-alpha) !important;
+        transform: scale(1.15) !important;
     }
     
     .site-title {
@@ -1363,8 +1457,8 @@ html, body {
    (same effect as the home page tab slider); articles keep their own
    max-width and stay centered while sliding. */
 .project-slider-viewport {
-    width: 100vw;
-    margin-left: calc(50% - 50vw);
+    width: 100%;
+    margin-left: 0;
     overflow: hidden;
     position: relative;
 }
@@ -1386,8 +1480,8 @@ html, body {
    viewport became full-bleed */
 .project-slider-wrapper .project-article {
     max-width: none;
-    padding-left: max(2rem, calc(50vw - var(--max-width) / 2));
-    padding-right: max(2rem, calc(50vw - var(--max-width) / 2));
+    padding-left: max(2rem, calc(50% - var(--max-width) / 2));
+    padding-right: max(2rem, calc(50% - var(--max-width) / 2));
 }
 
 .slider-page.collapsed {
