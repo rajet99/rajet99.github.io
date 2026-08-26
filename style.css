@@ -124,8 +124,9 @@ html, body {
     content: '';
     position: absolute;
     left: 0;
-    top: var(--logo-vertical-offset);
-    bottom: calc(-1 * var(--logo-vertical-offset));
+    /* Match .logo-img: flex centering applies half the margin-top offset */
+    top: calc(var(--logo-vertical-offset) / 2);
+    bottom: calc(var(--logo-vertical-offset) / -2);
     margin: auto 0;
     width: 105px;
     height: 105px;
@@ -952,8 +953,8 @@ html, body {
         width: 48px !important;
         height: 48px !important;
         left: 0 !important;
-        top: calc(var(--logo-vertical-offset) * (48 / 105)) !important;
-        bottom: calc(-1 * var(--logo-vertical-offset) * (48 / 105)) !important;
+        top: calc(var(--logo-vertical-offset) * (48 / 105) / 2) !important;
+        bottom: calc(var(--logo-vertical-offset) * (48 / 105) / -2) !important;
         margin: auto 0 !important;
         transform: scale(1) !important;
         filter: blur(calc(var(--logo-glow-base-blur) * (48 / 105))) brightness(var(--logo-glow-brightness)) saturate(var(--logo-glow-saturate)) !important;
