@@ -11,6 +11,14 @@
     initial-value: #ffffff;
 }
 
+/* Registered so hover/scroll scaling of the name can animate independently of the
+   instant width-driven sizing (unregistered custom properties cannot transition) */
+@property --name-scale {
+    syntax: '<number>';
+    inherits: true;
+    initial-value: 1;
+}
+
 /* Base Theme Setup & CSS Variables */
 :root {
     --site-scale: 1.05; /* Global website default scale multiplier (1.0 = 100%, 1.1 = 110%) */
@@ -32,6 +40,26 @@
     --logo-glow-saturate: 4.7; /* Color saturation multiplier for glow */
     --logo-glow-alpha: 0.95; /* Alpha / Opacity of the logo hover glow (0.0 transparent to 1.0 opaque) */
     --logo-vertical-offset: -5px; /* Optical vertical centering shift (negative = shift up, positive = shift down) */
+
+    /* Fluid navbar sizing (continuous functions of viewport width -> staged responsive
+       behavior with no discrete jumps). Logo size includes the former 1.28 visual scale,
+       so 134.4px here renders the same as 105px scaled up did before. */
+    --logo-size: clamp(48px, calc(48px + (100vw - 900px) * 0.23), 140px); /* Full logo size -> 48px mobile size across 1300px -> 900px */
+    --name-size: clamp(1.35rem, calc(1.35rem + (100vw - 900px) * 0.046), 2.5rem); /* Site title shrinks in lockstep with the logo */
+    --logo-offset-y: clamp(-6.66px, calc(-2.286px - (100vw - 900px) * 0.010935), -2.286px); /* Optical vertical shift, proportional to logo size */
+    --logo-blur: clamp(2.743px, calc(2.743px + (100vw - 900px) * 0.013093), 7.98px); /* Glow blur radius, proportional to logo size */
+    /* Name aligns with the left edge of the main content column (1000px, centered).
+       100vw / 1.05 corrects for the global zoom so both live in the same coordinate
+       space. Below 600px the resting 1rem gap tapers linearly down to ~0.5rem at
+       the 500px collapse point, proportional to closeness to the limit. */
+    --nav-gap-logo: min(
+        max(
+            calc(1rem - max(0px, 600px - 100vw) * 0.08),
+            calc((100vw / 1.05 - 1000px) / 2 - var(--nav-pad-x) - var(--logo-size))
+        ),
+        calc(1rem + max(0px, 100vw - 600px))
+    );
+    --nav-pad-x: clamp(1rem, calc(1rem + (100vw - 900px) * 0.0222), 1.75rem); /* Navbar edge padding: logo sits closer to the corner */
     --button-primary: #05070a;
     --button-primary-hover: #1e293b;
     --button-text: #ffffff;
@@ -87,27 +115,30 @@ html, body {
     transition: padding var(--transition-speed) ease-in-out, background-color var(--transition-speed), border-color var(--transition-speed);
 }
 
-/* Large header at top, smaller on scroll, or when hovered */
+/* Large header at top, smaller on scroll, or when hovered.
+   Vertical padding compensates for the fluid logo size so total bar height
+   stays close to the original ~169px. */
 .navbar.header-large,
 .navbar:hover {
-    padding-top: 2rem;   /* Increased vertical padding relative to the logo */
-    padding-bottom: 2rem;
+    padding-top: 0.9rem;   /* Keeps total bar height close to the original */
+    padding-bottom: 0.9rem;
 }
 
 .navbar:not(.header-large):not(:hover) {
-    padding-top: 1rem;   /* Increased vertical padding relative to the logo */
-    padding-bottom: 1rem;
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
 }
 
+/* Full-width row: logo pinned to left corner, theme button to right corner,
+   headings centered between them; free space closes evenly on shrink.
+   (No transition here: paddings/gaps track page width instantly) */
 .nav-container {
-    max-width: var(--max-width);
     margin: 0 auto;
-    padding-left: 2rem;
-    padding-right: 2rem;
+    padding-left: var(--nav-pad-x);
+    padding-right: var(--nav-pad-x);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: all var(--transition-speed) ease-in-out;
 }
 
 .logo-link {
@@ -115,7 +146,7 @@ html, body {
     align-items: center;
     text-decoration: none;
     color: var(--text-primary);
-    gap: 1.25rem;
+    gap: var(--nav-gap-logo); /* Closes first when shrinking (190px cap -> 1rem), before other gaps */
     position: relative;
 }
 
@@ -125,153 +156,97 @@ html, body {
     position: absolute;
     left: 0;
     /* Match .logo-img: flex centering applies half the margin-top offset */
-    top: calc(var(--logo-vertical-offset) / 2);
-    bottom: calc(var(--logo-vertical-offset) / -2);
+    top: calc(var(--logo-offset-y) / 2);
+    bottom: calc(var(--logo-offset-y) / -2);
     margin: auto 0;
-    width: 105px;
-    height: 105px;
+    width: var(--logo-size);
+    height: var(--logo-size);
     background: url("logo.svg") no-repeat center / contain;
-    filter: blur(var(--logo-glow-base-blur)) brightness(var(--logo-glow-brightness)) saturate(var(--logo-glow-saturate));
+    filter: blur(var(--logo-blur)) brightness(var(--logo-glow-brightness)) saturate(var(--logo-glow-saturate));
     opacity: 0;
     pointer-events: none;
     transform-origin: center center;
     transform: scale(1);
-    transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease-in-out, filter var(--transition-speed) ease;
+    /* Only opacity/transform transition (hover fade + scroll state); blur tracks width instantly */
+    transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease-in-out;
     z-index: 0;
 }
 
-.header-large .logo-link::before,
-.navbar:hover .logo-link::before {
-    transform: scale(1.28);
-    filter: blur(var(--logo-glow-base-blur)) brightness(var(--logo-glow-brightness)) saturate(var(--logo-glow-saturate));
-}
-
 .navbar:not(.header-large):not(:hover) .logo-link::before {
-    transform: scale(0.78);
-    filter: blur(calc(var(--logo-glow-base-blur) * (0.78 / 1.28))) brightness(var(--logo-glow-brightness)) saturate(var(--logo-glow-saturate));
+    transform: scale(0.56);
+    filter: blur(calc(var(--logo-blur) * 0.56)) brightness(var(--logo-glow-brightness)) saturate(var(--logo-glow-saturate));
 }
 
-/* Sizing logo at top vs scrolled state (High-Performance GPU-accelerated scaling) */
+/* Sizing logo at top vs scrolled state (High-Performance GPU-accelerated scaling).
+   Real layout size carries the full fluid size (including the former 1.28 visual
+   scale), so transforms are only needed for scroll/hover state ratios. */
 .logo-img {
     border-radius: 4px;
     display: block;
-    height: 105px;
-    width: 105px;
-    margin-top: var(--logo-vertical-offset);
+    height: var(--logo-size);
+    width: var(--logo-size);
+    margin-top: var(--logo-offset-y);
     position: relative;
     z-index: 1;
     transform-origin: center center;
-    transition: transform var(--transition-speed) ease-in-out;
+    transition: transform var(--transition-speed) ease-in-out, margin-top var(--transition-speed) ease-in-out, margin-bottom var(--transition-speed) ease-in-out;
 }
 
-.header-large .logo-img,
-.navbar:hover .logo-img {
-    transform: scale(1.28);
-}
-
+/* Scrolled/compressed state: transform shrinks the visual while negative margins
+   shrink the layout box too, so the whole bar gets much smaller (not just the pixels) */
 .navbar:not(.header-large):not(:hover) .logo-img {
-    transform: scale(0.78); /* Scales down to ~82px */
+    transform: scale(0.56);
+    margin-top: calc(var(--logo-offset-y) - var(--logo-size) * 0.22);
+    margin-bottom: calc(var(--logo-size) * -0.22);
 }
 
-/* Logo hover state */
-.logo-img:hover {
-    transform: scale(1.38);
-}
-
+/* Logo hover state: glow only, no enlargement */
 .logo-img:hover ~ .logo-link::before,
 .logo-link:hover::before {
     opacity: var(--logo-glow-alpha);
-    transform: scale(1.42);
 }
 
-/* Anchor logo to the left corner on wide viewports (until viewport gets too narrow) */
-@media (min-width: 1350px) {
-    .logo-link {
-        position: static;
-    }
-    
-    .logo-link::before {
-        left: 2.5rem;
-        top: var(--logo-vertical-offset);
-        bottom: calc(-1 * var(--logo-vertical-offset));
-        margin: auto 0;
-    }
-    
-    .logo-img {
-        position: absolute;
-        left: 2.5rem;
-        top: var(--logo-vertical-offset);
-        bottom: calc(-1 * var(--logo-vertical-offset));
-        margin: auto 0;
-        margin-top: 0;
-        transform: scale(1.28);
-    }
-
-    /* Fixed vertical center translation + scale on hover, prevents shifting */
-    .logo-img:hover {
-        transform: scale(1.38) !important;
-    }
-    
-    .logo-img:hover ~ .logo-link::before,
-    .logo-link:hover::before {
-        opacity: var(--logo-glow-alpha) !important;
-        transform: scale(1.42) !important;
-    }
-    
-    /* Ensure scales apply smoothly across states while snapping instantly on zoom/resize */
-    .header-large .logo-img,
-    .navbar:hover .logo-img {
-        position: absolute;
-        left: 2.5rem;
-        top: var(--logo-vertical-offset);
-        bottom: calc(-1 * var(--logo-vertical-offset));
-        margin: auto 0;
-        transform: scale(1.28) !important;
-    }
-    
-    .header-large .logo-link::before,
-    .navbar:hover .logo-link::before {
-        transform: scale(1.28) !important;
-    }
-    
+/* Disable scroll-down shrink near the smallest widths (logo is already fluid-sized there) */
+@media (max-width: 1000px) {
     .navbar:not(.header-large):not(:hover) .logo-img {
-        position: absolute;
-        left: 2.5rem;
-        top: var(--logo-vertical-offset);
-        bottom: calc(-1 * var(--logo-vertical-offset));
-        margin: auto 0;
-        transform: scale(0.78) !important;
+        transform: none !important;
+        margin-top: var(--logo-offset-y) !important;
+        margin-bottom: 0 !important;
     }
 
     .navbar:not(.header-large):not(:hover) .logo-link::before {
-        transform: scale(0.78) !important;
+        transform: none !important;
+        filter: blur(var(--logo-blur)) brightness(var(--logo-glow-brightness)) saturate(var(--logo-glow-saturate)) !important;
+    }
+
+    .navbar:not(.header-large):not(:hover) .site-title {
+        --name-scale: 1 !important;
     }
 }
 
-/* Site Title styling */
+/* Site Title styling.
+   Width-driven size (--name-size) is intentionally NOT transitioned so it tracks
+   page width instantly; the hover/scroll factor --name-scale animates at the same
+   rate as the logo's transform. */
 .site-title {
     font-weight: bold;
     letter-spacing: -0.5px;
     color: var(--text-primary);
-    transition: font-size var(--transition-speed) ease;
-}
-
-.header-large .site-title,
-.navbar:hover .site-title {
-    font-size: 2.5rem;
+    font-size: calc(var(--name-size) * var(--name-scale, 1));
+    transition: --name-scale var(--transition-speed) ease-in-out;
 }
 
 .navbar:not(.header-large):not(:hover) .site-title {
-    font-size: 1.85rem;
+    --name-scale: 0.74; /* Previous compressed size (~1.85rem); animates together with the logo */
 }
 
 .nav-menu {
     display: flex;
-    gap: 2rem;
+    gap: clamp(0.25rem, calc(0.25rem + (100vw - 500px) * 0.03), 2rem); /* Internal heading gaps also close on shrink */
 }
 
 .nav-link {
-    font-size: 0.95rem;
+    font-size: clamp(0.85rem, calc(0.85rem + (100vw - 900px) * 0.001), 0.95rem); /* Shrinks subtly near mobile widths */
     font-weight: bold;
     color: var(--text-secondary);
     text-decoration: none;
@@ -310,8 +285,8 @@ html, body {
 .theme-btn {
     background: none;
     border: 1px solid var(--border-color);
-    width: 38px;
-    height: 38px;
+    width: clamp(32px, calc(32px + (100vw - 900px) * 0.06), 38px);
+    height: clamp(32px, calc(32px + (100vw - 900px) * 0.06), 38px);
     border-radius: 50%;
     cursor: pointer;
     display: flex;
@@ -344,8 +319,8 @@ html, body {
     width: 100%;
     overflow: hidden;
     position: relative;
-    min-height: calc(100vh - 190px);
-    margin-top: 190px; /* Increased offset to accommodate enlarged topbar padding */
+    min-height: calc(100vh - clamp(120px, calc(120px + (100vw - 900px) * 0.2053), 190px));
+    margin-top: clamp(120px, calc(120px + (100vw - 900px) * 0.2053), 190px); /* Tracks fluid navbar height */
 }
 
 .sections-slider {
@@ -906,7 +881,11 @@ html, body {
 }
 
 /* Responsive Styles */
-@media (max-width: 900px) {
+
+/* Navbar collapses to 2 rows only when the single row is truly out of space.
+   Between 900px and 500px the row keeps closing gaps (logo/name floors already
+   reached), so no empty space is wasted before the collapse. */
+@media (max-width: 500px) {
     /* Compress Navbar size and layout on mobile */
     .navbar.header-large,
     .navbar:hover,
@@ -923,7 +902,7 @@ html, body {
         padding-left: 1.5rem !important;
         padding-right: 1.5rem !important;
     }
-    
+
     .logo-link {
         display: flex !important;
         flex-direction: row !important; /* Force Logo and Name side-by-side */
@@ -933,15 +912,15 @@ html, body {
         grid-row: 1 !important;
         grid-column: 1 !important;
     }
-    
+
     .logo-img,
     .header-large .logo-img,
     .navbar:hover .logo-img,
     .navbar:not(.header-large):not(:hover) .logo-img {
         position: static !important; /* Reset absolute margins */
-        height: 48px !important;
-        width: 48px !important;
-        margin-top: calc(var(--logo-vertical-offset) * (48 / 105)) !important;
+        height: var(--logo-size) !important;
+        width: var(--logo-size) !important;
+        margin-top: var(--logo-offset-y) !important;
         transform: none !important;
     }
 
@@ -950,26 +929,25 @@ html, body {
     .header-large .logo-link::before,
     .navbar:hover .logo-link::before,
     .navbar:not(.header-large):not(:hover) .logo-link::before {
-        width: 48px !important;
-        height: 48px !important;
+        width: var(--logo-size) !important;
+        height: var(--logo-size) !important;
         left: 0 !important;
-        top: calc(var(--logo-vertical-offset) * (48 / 105) / 2) !important;
-        bottom: calc(var(--logo-vertical-offset) * (48 / 105) / -2) !important;
+        top: calc(var(--logo-offset-y) / 2) !important;
+        bottom: calc(var(--logo-offset-y) / -2) !important;
         margin: auto 0 !important;
         transform: scale(1) !important;
-        filter: blur(calc(var(--logo-glow-base-blur) * (48 / 105))) brightness(var(--logo-glow-brightness)) saturate(var(--logo-glow-saturate)) !important;
+        filter: blur(var(--logo-blur)) brightness(var(--logo-glow-brightness)) saturate(var(--logo-glow-saturate)) !important;
     }
 
     .logo-img:hover ~ .logo-link::before,
     .logo-link:hover::before {
         opacity: var(--logo-glow-alpha) !important;
-        transform: scale(1.15) !important;
     }
-    
+
     .site-title {
-        font-size: 1.35rem !important;
+        font-size: var(--name-size) !important;
     }
-    
+
     .nav-menu {
         grid-row: 2 !important;
         grid-column: 1 / span 2 !important; /* Centered in Row 2 below */
@@ -977,11 +955,7 @@ html, body {
         gap: 1.5rem !important;
         margin-top: 0.25rem !important;
     }
-    
-    .nav-link {
-        font-size: 0.85rem !important;
-    }
-    
+
     .theme-toggle-container {
         grid-row: 1 !important;
         grid-column: 2 !important; /* Positioned in Row 1 next to Logo & Name */
@@ -989,7 +963,9 @@ html, body {
         justify-content: flex-end !important;
         align-items: center !important;
     }
+}
 
+@media (max-width: 900px) {
     /* Reduce content margins to fit the smaller top navbar */
     .page-slider-viewport {
         margin-top: 120px !important;
@@ -1036,9 +1012,9 @@ html, body {
 
 /* Project Detail Page Styles */
 .project-detail-main {
-    margin-top: 190px; /* Offset for header */
+    margin-top: clamp(120px, calc(120px + (100vw - 900px) * 0.2053), 190px); /* Tracks fluid navbar height */
     padding: 4rem 2rem;
-    min-height: calc(100vh - 190px);
+    min-height: calc(100vh - clamp(120px, calc(120px + (100vw - 900px) * 0.2053), 190px));
 }
 
 .back-link {
