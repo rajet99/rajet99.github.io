@@ -11,9 +11,15 @@
     initial-value: #ffffff;
 }
 
-/* Registered so hover/scroll scaling of the name can animate independently of the
+/* Registered so hover/scroll scaling of the name and logo can animate independently of the
    instant width-driven sizing (unregistered custom properties cannot transition) */
 @property --name-scale {
+    syntax: '<number>';
+    inherits: true;
+    initial-value: 1;
+}
+
+@property --logo-scale {
     syntax: '<number>';
     inherits: true;
     initial-value: 1;
@@ -117,7 +123,7 @@ html, body {
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--border-color);
-    transition: padding var(--transition-speed) ease-in-out, background-color var(--transition-speed), border-color var(--transition-speed);
+    transition: background-color var(--transition-speed), border-color var(--transition-speed);
 }
 
 /* Large header at top, smaller on scroll, or when hovered */
@@ -158,49 +164,40 @@ html, body {
     content: '';
     position: absolute;
     left: 0;
-    /* Match .logo-img: flex centering applies half the margin-top offset */
-    top: calc(var(--logo-offset-y) / 2);
-    bottom: calc(var(--logo-offset-y) / -2);
+    top: 0;
+    bottom: 0;
     margin: auto 0;
-    width: var(--logo-size);
-    height: var(--logo-size);
+    width: calc(var(--logo-size) * var(--logo-scale, 1));
+    height: calc(var(--logo-size) * var(--logo-scale, 1));
     background: url("logo.svg") no-repeat center / contain;
-    filter: blur(var(--logo-blur)) brightness(var(--logo-glow-brightness)) saturate(var(--logo-glow-saturate));
+    filter: blur(calc(var(--logo-blur) * var(--logo-scale, 1))) brightness(var(--logo-glow-brightness)) saturate(var(--logo-glow-saturate));
     opacity: 0;
     pointer-events: none;
-    transform-origin: center center;
-    transform: scale(1);
-    /* Only opacity/transform transition (hover fade + scroll state); blur tracks width instantly */
-    transition: opacity var(--transition-speed) ease, transform var(--transition-speed) ease-in-out;
+    transition: opacity var(--transition-speed) ease, --logo-scale var(--transition-speed) ease-in-out;
     z-index: 0;
 }
 
 .navbar:not(.header-large):not(:hover) .logo-link::before {
-    transform: scale(0.56);
-    filter: blur(calc(var(--logo-blur) * 0.56)) brightness(var(--logo-glow-brightness)) saturate(var(--logo-glow-saturate));
+    filter: blur(calc(var(--logo-blur) * var(--logo-scale, 0.56))) brightness(var(--logo-glow-brightness)) saturate(var(--logo-glow-saturate));
 }
 
-/* Sizing logo at top vs scrolled state (High-Performance GPU-accelerated scaling).
-   Real layout size carries the full fluid size (including the former 1.28 visual
-   scale), so transforms are only needed for scroll/hover state ratios. */
+/* Sizing logo at top vs scrolled state.
+   Registered --logo-scale animates during scroll/hover without animating width-driven sizing.
+   Natural layout dimensions keep the logo perfectly centered vertically at all times. */
 .logo-img {
     border-radius: 4px;
     display: block;
-    height: var(--logo-size);
-    width: var(--logo-size);
-    margin-top: var(--logo-offset-y);
+    height: calc(var(--logo-size) * var(--logo-scale, 1));
+    width: calc(var(--logo-size) * var(--logo-scale, 1));
+    margin: 0;
     position: relative;
     z-index: 1;
-    transform-origin: center center;
-    transition: transform var(--transition-speed) ease-in-out, margin-top var(--transition-speed) ease-in-out, margin-bottom var(--transition-speed) ease-in-out;
+    transition: --logo-scale var(--transition-speed) ease-in-out;
 }
 
-/* Scrolled/compressed state: transform shrinks the visual while negative margins
-   shrink the layout box too, so the whole bar gets much smaller (not just the pixels) */
-.navbar:not(.header-large):not(:hover) .logo-img {
-    transform: scale(0.56);
-    margin-top: calc(var(--logo-offset-y) - var(--logo-size) * 0.22);
-    margin-bottom: calc(var(--logo-size) * -0.22);
+/* Scrolled/compressed state: registered custom properties scale the visual and margins */
+.navbar:not(.header-large):not(:hover) {
+    --logo-scale: 0.56;
 }
 
 /* Logo hover state: glow only, no enlargement */
@@ -211,18 +208,8 @@ html, body {
 
 /* Disable scroll-down shrink near the smallest widths (logo is already fluid-sized there) */
 @media (max-width: 1000px) {
-    .navbar:not(.header-large):not(:hover) .logo-img {
-        transform: none !important;
-        margin-top: var(--logo-offset-y) !important;
-        margin-bottom: 0 !important;
-    }
-
-    .navbar:not(.header-large):not(:hover) .logo-link::before {
-        transform: none !important;
-        filter: blur(var(--logo-blur)) brightness(var(--logo-glow-brightness)) saturate(var(--logo-glow-saturate)) !important;
-    }
-
-    .navbar:not(.header-large):not(:hover) .site-title {
+    .navbar:not(.header-large):not(:hover) {
+        --logo-scale: 1 !important;
         --name-scale: 1 !important;
     }
 }
@@ -901,6 +888,8 @@ html, body {
     .navbar {
         padding-top: 0.5rem !important;
         padding-bottom: 0.5rem !important;
+        --logo-scale: 1 !important;
+        --name-scale: 1 !important;
     }
 
     .nav-container {
@@ -930,6 +919,7 @@ html, body {
         height: var(--logo-size) !important;
         width: var(--logo-size) !important;
         margin-top: var(--logo-offset-y) !important;
+        margin-bottom: 0 !important;
         transform: none !important;
     }
 
