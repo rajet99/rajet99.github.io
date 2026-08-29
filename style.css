@@ -59,7 +59,12 @@
         ),
         calc(1rem + max(0px, 100vw - 600px))
     );
+    --nav-gap-right: max(
+        0px,
+        calc((100vw / 1.05 - 1000px) / 2 - var(--nav-pad-x))
+    );
     --nav-pad-x: clamp(1rem, calc(1rem + (100vw - 900px) * 0.0222), 1.75rem); /* Navbar edge padding: logo sits closer to the corner */
+    --nav-pad-y: clamp(0rem, calc(0.15rem - (100vw - 900px) * 0.006), 0.15rem); /* 0 on full desktop (1300px), scales proportionally to 0.15rem at 900px across the compression phase */
     --button-primary: #05070a;
     --button-primary-hover: #1e293b;
     --button-text: #ffffff;
@@ -115,18 +120,16 @@ html, body {
     transition: padding var(--transition-speed) ease-in-out, background-color var(--transition-speed), border-color var(--transition-speed);
 }
 
-/* Large header at top, smaller on scroll, or when hovered.
-   Vertical padding compensates for the fluid logo size so total bar height
-   stays close to the original ~169px. */
+/* Large header at top, smaller on scroll, or when hovered */
 .navbar.header-large,
 .navbar:hover {
-    padding-top: 0.9rem;   /* Keeps total bar height close to the original */
-    padding-bottom: 0.9rem;
+    padding-top: var(--nav-pad-y);
+    padding-bottom: var(--nav-pad-y);
 }
 
 .navbar:not(.header-large):not(:hover) {
-    padding-top: 0.4rem;
-    padding-bottom: 0.4rem;
+    padding-top: var(--nav-pad-y);
+    padding-bottom: var(--nav-pad-y);
 }
 
 /* Full-width row: logo pinned to left corner, theme button to right corner,
@@ -282,6 +285,12 @@ html, body {
 }
 
 /* Theme Toggle Button */
+.theme-toggle-container {
+    margin-right: var(--nav-gap-right);
+    display: flex;
+    align-items: center;
+}
+
 .theme-btn {
     background: none;
     border: 1px solid var(--border-color);
@@ -962,6 +971,7 @@ html, body {
         display: flex !important;
         justify-content: flex-end !important;
         align-items: center !important;
+        margin-right: 0 !important;
     }
 }
 
