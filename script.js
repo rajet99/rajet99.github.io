@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const navbar = document.getElementById('navbar');
     
     const handleScroll = () => {
-        if (window.scrollY > 20) {
+        if (window.scrollY > 100) {
             navbar.classList.remove('header-large');
         } else {
             navbar.classList.add('header-large');
